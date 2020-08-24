@@ -105,3 +105,7 @@ dist
 
 # Build files
 build
+
+# Test data
+data
+output
