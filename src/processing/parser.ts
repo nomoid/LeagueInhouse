@@ -1,34 +1,18 @@
 // ROFL parsing
 // Code based on https://github.com/leeanchu/ROFL-Player/blob/master/Rofl.Reader/Parsers/RoflParser.cs
 
-import * as BitConverter from './bitconverter';
-import * as Data from './data';
+import * as BitConverter from "./bitconverter";
+import * as Data from "./data";
 
 const magicNumbers = Buffer.from([0x52, 0x49, 0x4F, 0x54]);
 const lengthFieldOffset = 262;
 const lengthFieldByteSize = 26;
-
-export async function parse(buf: Buffer): Promise<Data.Metadata> {
-    if (!await checkFile(buf)) {
-        throw new Error(`Invalid magic number!`);
-    }
-    return await extractHeaders(buf);
-}
 
 // Throws exception if format is incorrect
 async function checkFile(buf: Buffer) {
     // Check magic numbers
     const magicBuffer = buf.slice(0, 4);
     return magicNumbers.equals(magicBuffer);
-}
-
-async function extractHeaders(buf: Buffer) {
-    const lengthFields = await extractLengthFields(buf);
-    const partialMatchMetadata = await extractMatchMetadata(lengthFields, buf);
-    const payloadFields = await extractPayloadFields(lengthFields, buf);
-    const matchId = payloadFields.matchId;
-    const matchMetadata = {...partialMatchMetadata, matchId};
-    return matchMetadata;
 }
 
 async function extractLengthFields(buf: Buffer) {
@@ -41,7 +25,7 @@ async function extractLengthFields(buf: Buffer) {
         payloadHeaderOffset: BitConverter.toInt32(lengthBuffer, 14),
         payloadHeaderLength: BitConverter.toInt32(lengthBuffer, 18),
         payloadOffset: BitConverter.toInt32(lengthBuffer, 22)
-    }
+    };
     return lengthFields;
 }
 
@@ -86,6 +70,23 @@ async function extractPayloadFields(lengthFields: Data.LengthFields, buf: Buffer
         keyFrameInterval: BitConverter.toInt32(payloadBuffer, 28),
         encryptionKeyLength: encryptionKeyLength,
         encryptionKey: BitConverter.toString(payloadBuffer, 34, encryptionKeyLength)
-    }
+    };
     return payloadFields;
+}
+
+async function extractHeaders(buf: Buffer) {
+    const lengthFields = await extractLengthFields(buf);
+    const partialMatchMetadata = await extractMatchMetadata(lengthFields, buf);
+    const payloadFields = await extractPayloadFields(lengthFields, buf);
+    const matchId = payloadFields.matchId;
+    const matchMetadata = {...partialMatchMetadata, matchId};
+    return matchMetadata;
+}
+
+
+export async function parse(buf: Buffer): Promise<Data.Metadata> {
+    if (!await checkFile(buf)) {
+        throw new Error("Invalid magic number!");
+    }
+    return await extractHeaders(buf);
 }
