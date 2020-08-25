@@ -48,7 +48,9 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
         req.logIn(user, (err) => {
             if (err) { return next(err); }
             req.flash("success", { msg: "Success! You are logged in." });
-            res.redirect(req.session.returnTo || "/");
+            if (req.session) {
+                res.redirect(req.session.returnTo || "/");
+            }
         });
     })(req, res, next);
 };
@@ -202,25 +204,6 @@ export const postDeleteAccount = (req: Request, res: Response, next: NextFunctio
         req.logout();
         req.flash("info", { msg: "Your account has been deleted." });
         res.redirect("/");
-    });
-};
-
-/**
- * Unlink OAuth provider.
- * @route GET /account/unlink/:provider
- */
-export const getOauthUnlink = (req: Request, res: Response, next: NextFunction) => {
-    const provider = req.params.provider;
-    const user = req.user as UserDocument;
-    User.findById(user.id, (err, user: any) => {
-        if (err) { return next(err); }
-        user[provider] = undefined;
-        user.tokens = user.tokens.filter((token: AuthToken) => token.kind !== provider);
-        user.save((err: WriteError) => {
-            if (err) { return next(err); }
-            req.flash("info", { msg: `${provider} account has been unlinked.` });
-            res.redirect("/account");
-        });
     });
 };
 

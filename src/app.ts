@@ -30,11 +30,23 @@ const app = express();
 const mongoUrl = MONGODB_URI;
 mongoose.Promise = bluebird;
 
-mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true } ).then(
+if (mongoUrl === undefined) {
+    console.log("MongoURL undefined!");
+    process.exit();
+}
+
+let sessionSecret = SESSION_SECRET;
+
+if (sessionSecret === undefined) {
+    console.log("WARNING: Session secret undefined! Proceeding with empty string. ");
+    sessionSecret = "";
+}
+
+mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true }).then(
     () => { /** ready to use. The `mongoose.connect()` promise resolves to undefined. */ },
 ).catch(err => {
     console.log(`MongoDB connection error. Please make sure MongoDB is running. ${err}`);
-    // process.exit();
+    process.exit();
 });
 
 // Express configuration
@@ -47,7 +59,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({
     resave: true,
     saveUninitialized: true,
-    secret: SESSION_SECRET,
+    secret: sessionSecret,
     store: new MongoStore({
         url: mongoUrl,
         autoReconnect: true
@@ -65,14 +77,18 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
     // After successful login, redirect back to the intended page
     if (!req.user &&
-    req.path !== "/login" &&
-    req.path !== "/signup" &&
-    !req.path.match(/^\/auth/) &&
-    !req.path.match(/\./)) {
-        req.session.returnTo = req.path;
+        req.path !== "/login" &&
+        req.path !== "/signup" &&
+        !req.path.match(/^\/auth/) &&
+        !req.path.match(/\./)) {
+        if (req.session) {
+            req.session.returnTo = req.path;
+        }
     } else if (req.user &&
-    req.path == "/account") {
-        req.session.returnTo = req.path;
+        req.path == "/account") {
+        if (req.session) {
+            req.session.returnTo = req.path;
+        }
     }
     next();
 });
@@ -94,26 +110,9 @@ app.get("/reset/:token", userController.getReset);
 app.post("/reset/:token", userController.postReset);
 app.get("/signup", userController.getSignup);
 app.post("/signup", userController.postSignup);
-app.get("/contact", contactController.getContact);
-app.post("/contact", contactController.postContact);
 app.get("/account", passportConfig.isAuthenticated, userController.getAccount);
 app.post("/account/profile", passportConfig.isAuthenticated, userController.postUpdateProfile);
 app.post("/account/password", passportConfig.isAuthenticated, userController.postUpdatePassword);
 app.post("/account/delete", passportConfig.isAuthenticated, userController.postDeleteAccount);
-app.get("/account/unlink/:provider", passportConfig.isAuthenticated, userController.getOauthUnlink);
-
-/**
- * API examples routes.
- */
-app.get("/api", apiController.getApi);
-app.get("/api/facebook", passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getFacebook);
-
-/**
- * OAuth authentication routes. (Sign in)
- */
-app.get("/auth/facebook", passport.authenticate("facebook", { scope: ["email", "public_profile"] }));
-app.get("/auth/facebook/callback", passport.authenticate("facebook", { failureRedirect: "/login" }), (req, res) => {
-    res.redirect(req.session.returnTo || "/");
-});
 
 export default app;
