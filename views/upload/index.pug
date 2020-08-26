@@ -4,7 +4,7 @@ block content
   h2 Upload Replay
   hr
 
-  form.form-horizontal(method='POST')
+  form.form-horizontal(method='POST', enctype='multipart/form-data')
     input(type='hidden', name='_csrf', value=_csrf)
     .form-group.row.justify-content-md-center
       p.offset-sm-3.col-sm-7 Please fill in all of the information below so we can keep track of accurate stats.
@@ -46,7 +46,7 @@ block content
           option(value="king") King
           option(value="aram") Aram
           option(value="other") Other
-        input.form-control(type="text", name="mode", id="modeOther", style="display:none;")
+        input.form-control(type="text", name="modeOther", id="modeOther", style="display:none;")
     .form-group.row.justify-content-md-center
       .offset-sm-3.col-sm-7
         button.col-sm-3.btn.btn-primary(type='submit')

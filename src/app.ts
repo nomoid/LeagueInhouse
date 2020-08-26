@@ -10,8 +10,10 @@ import mongoose from "mongoose";
 import passport from "passport";
 import bluebird from "bluebird";
 import { MONGODB_URI, SESSION_SECRET } from "./util/secrets";
+import multer, { memoryStorage } from "multer";
 
 const MongoStore = mongo(session);
+const upload = multer({ storage: memoryStorage() });
 
 // Controllers (route handlers)
 import * as homeController from "./controllers/home";
@@ -106,7 +108,6 @@ app.get("/login", userController.getLogin);
 app.post("/login", userController.postLogin);
 app.get("/logout", userController.logout);
 app.get("/forgot", userController.getForgot);
-// app.post("/forgot", userController.postForgot);
 app.get("/reset/:token", userController.getReset);
 app.post("/reset/:token", userController.postReset);
 app.get("/signup", userController.getSignup);
@@ -116,5 +117,7 @@ app.post("/account/profile", passportConfig.isAuthenticated, userController.post
 app.post("/account/password", passportConfig.isAuthenticated, userController.postUpdatePassword);
 app.post("/account/delete", passportConfig.isAuthenticated, userController.postDeleteAccount);
 app.get("/upload", passportConfig.isAuthenticated, uploadController.getUpload);
+app.post("/upload", upload.single("replay"), passportConfig.isAuthenticated, uploadController.postUpload);
+app.get("/upload/success", passportConfig.isAuthenticated, uploadController.getUploadSuccess);
 
 export default app;
