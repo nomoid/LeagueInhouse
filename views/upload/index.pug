@@ -1,0 +1,54 @@
+extends ../layout
+
+block content
+  h2 Upload Replay
+  hr
+
+  form.form-horizontal(method='POST')
+    input(type='hidden', name='_csrf', value=_csrf)
+    .form-group.row.justify-content-md-center
+      p.offset-sm-3.col-sm-7 Please fill in all of the information below so we can keep track of accurate stats.
+    .form-group.row.justify-content-md-center
+      ul.offset-sm-3.col-sm-7 To find the replay file (.rofl):
+        li Go to your "League client" -> "Profile" -> "Match History"
+        li Click the "Download Replay" button 
+        li Find the most recently modified replay file in the replay directory
+        ul
+          li Windows: The replay is located at "C:/Users/&lt;username&gt;/Documents/League of Legends/Replays"
+          li Mac: The replay is located at "/Users/&lt;username&gt;/Documents/League of Legends/Replays"
+
+    .form-group.row.justify-content-md-center
+      label.col-sm-3.col-form-label.text-right.font-weight-bold(for='replay') Replay File (.rofl)
+      .col-sm-7
+        input.form-control(type='file', name='replay', id='replay', accept=".rofl", required)
+    .form-group.row.justify-content-md-center
+      label.col-sm-3.col-form-label.text-right.font-weight-bold(for='date') Date
+      .col-sm-7
+        input.form-control(type='date', name='date', id='date', value=today, required)
+    .form-group.row.justify-content-md-center
+      label.col-sm-3.col-form-label.text-right.font-weight-bold(for='mode') Game Mode
+      .col-sm-7
+        script.
+          function checkOther(value) {
+              var element = document.getElementById("modeOther");
+              if (value === "other") {
+                  element.style.display = "block";
+              }
+              else {
+                  element.style.display = "none";
+              }
+          }
+        select.form-control#mode(name="mode" onchange='checkOther(this.value);', required)
+          option(hidden, disabled, selected, value) Select an option
+          option(value="standard") Standard
+          option(value="inthouse") Inthouse
+          option(value="offrole") Offrole
+          option(value="king") King
+          option(value="aram") Aram
+          option(value="other") Other
+        input.form-control(type="text", name="mode", id="modeOther", style="display:none;")
+    .form-group.row.justify-content-md-center
+      .offset-sm-3.col-sm-7
+        button.col-sm-3.btn.btn-primary(type='submit')
+          i.fa.fa-upload
+          | Upload

@@ -16,6 +16,7 @@ const MongoStore = mongo(session);
 // Controllers (route handlers)
 import * as homeController from "./controllers/home";
 import * as userController from "./controllers/user";
+import * as uploadController from "./controllers/upload";
 import * as apiController from "./controllers/api";
 import * as contactController from "./controllers/contact";
 
@@ -105,7 +106,7 @@ app.get("/login", userController.getLogin);
 app.post("/login", userController.postLogin);
 app.get("/logout", userController.logout);
 app.get("/forgot", userController.getForgot);
-app.post("/forgot", userController.postForgot);
+// app.post("/forgot", userController.postForgot);
 app.get("/reset/:token", userController.getReset);
 app.post("/reset/:token", userController.postReset);
 app.get("/signup", userController.getSignup);
@@ -114,5 +115,6 @@ app.get("/account", passportConfig.isAuthenticated, userController.getAccount);
 app.post("/account/profile", passportConfig.isAuthenticated, userController.postUpdateProfile);
 app.post("/account/password", passportConfig.isAuthenticated, userController.postUpdatePassword);
 app.post("/account/delete", passportConfig.isAuthenticated, userController.postDeleteAccount);
+app.get("/upload", passportConfig.isAuthenticated, uploadController.getUpload);
 
 export default app;
