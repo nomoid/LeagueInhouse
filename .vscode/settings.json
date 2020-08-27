@@ -3,7 +3,10 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  "eslint.validate": ["javascript", "typescript"],
+  "eslint.validate": [
+    "javascript",
+    "typescript"
+  ],
   "editor.formatOnSave": true,
   "[javascript]": {
     "editor.formatOnSave": false
@@ -21,6 +24,13 @@
     "**/coverage": true
   },
   "typescript.referencesCodeLens.enabled": true,
-  "appService.zipIgnorePattern": [".vscode{,/**}"],
-  "appService.deploySubpath": ""
+  "appService.zipIgnorePattern": [
+    ".vscode{,/**}",
+    "node_modules{,/**}",
+    "data{,/**}",
+    "debug.log",
+    "yarn-error.log"
+  ],
+  "appService.deploySubpath": ".",
+  "appService.defaultWebAppToDeploy": "/subscriptions/e42ffee2-c41e-4390-970f-7f1d8e570548/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/LeagueInhouse"
 }

@@ -1,19 +1,21 @@
 {
-    "name": "express-typescript-starter",
+    "name": "leagueinhouse",
     "version": "0.1.0",
-    "description": "A starting point for Node.js express apps with TypeScript",
+    "description": "League of Legends Inhouse Tracker",
     "repository": {
         "type": "git",
-        "url": "https://github.com/Microsoft/TypeScript-Node-Starter"
+        "url": "https://github.com/nomoid/LeagueInhouse"
     },
-    "author": "Bowden Kelly",
+    "author": "Markus Feng",
     "license": "MIT",
     "scripts": {
-        "build": "npm run build-sass && npm run build-ts && npm run lint && npm run copy-static-assets",
+        "build": "npm run noop",
+        "build-full": "npm run build-sass && npm run build-ts && npm run lint && npm run copy-static-assets",
         "build-sass": "node-sass src/public/css/main.scss dist/public/css/main.css",
         "build-ts": "tsc",
+        "noop": "ts-node noop.ts",
         "copy-static-assets": "ts-node copyStaticAssets.ts",
-        "debug": "npm run build && npm run watch-debug",
+        "debug": "npm run build-full && npm run watch-debug",
         "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
         "serve": "node dist/server.js",
         "serve-debug": "nodemon --inspect dist/server.js",
