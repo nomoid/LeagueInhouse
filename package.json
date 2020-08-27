@@ -13,7 +13,7 @@
         "build-full": "npm run build-sass && npm run build-ts && npm run lint && npm run copy-static-assets",
         "build-sass": "node-sass src/public/css/main.scss dist/public/css/main.css",
         "build-ts": "tsc",
-        "noop": "ts-node noop.ts",
+        "noop": "node --help",
         "copy-static-assets": "ts-node copyStaticAssets.ts",
         "debug": "npm run build-full && npm run watch-debug",
         "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
