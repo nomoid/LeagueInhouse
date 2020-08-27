@@ -8,21 +8,26 @@ mongooseLong(mongoose);
 
 const schemaTypes = mongoose.Schema.Types;
 
+type LoadReplayCallback = (error?: Error, data?: Buffer) => any;
+type SaveReplayCallback = HookNextFunction;
+
 export type ReplayDocument = mongoose.Document & {
     matchId: mongoose.Types.Long;
     mode: string;
     date: string;
-    loadReplay: (next: (error?: Error, data?: Buffer) => any) => void;
-    saveReplay: (data: Buffer, next: HookNextFunction) => void;
+    submitter: string;
+    loadReplay: (next: LoadReplayCallback) => void;
+    saveReplay: (data: Buffer, next: SaveReplayCallback) => void;
 };
 
 const replaySchema = new mongoose.Schema({
     matchId: { type: schemaTypes.Long, unique: true },
     mode: String,
     date: String,
+    submitter: String
 }, { timestamps: true });
 
-function saveReplay(replay: ReplayDocument, buffer: Buffer, next: HookNextFunction) {
+function saveReplay(replay: ReplayDocument, buffer: Buffer, next: SaveReplayCallback) {
     const Attachment = createModel();
     const matchIdString = replay.matchId.toString();
     const fileName = `${matchIdString}.rofl`;
@@ -43,7 +48,7 @@ function saveReplay(replay: ReplayDocument, buffer: Buffer, next: HookNextFuncti
     });
 }
 
-function loadReplay(replay: ReplayDocument, next: (error?: Error, data?: Buffer) => any) {
+function loadReplay(replay: ReplayDocument, next: LoadReplayCallback) {
     const Attachment = createModel();
     const matchIdString = replay.matchId.toString();
     const fileName = `${matchIdString}.rofl`;
@@ -60,11 +65,11 @@ function loadReplay(replay: ReplayDocument, next: (error?: Error, data?: Buffer)
     });
 }
 
-replaySchema.methods.saveReplay = function(this: ReplayDocument, data: Buffer, next: HookNextFunction) {
+replaySchema.methods.saveReplay = function(this: ReplayDocument, data: Buffer, next: SaveReplayCallback) {
     saveReplay(this, data, next);
 };
 
-replaySchema.methods.loadReplay = function(this: ReplayDocument, next: (error?: Error, data?: Buffer) => any) {
+replaySchema.methods.loadReplay = function(this: ReplayDocument, next: LoadReplayCallback) {
     loadReplay(this, next);
 };
 

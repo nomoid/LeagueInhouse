@@ -1,13 +1,11 @@
-import async from "async";
-import crypto from "crypto";
-import nodemailer from "nodemailer";
 import passport from "passport";
-import { User, UserDocument, AuthToken } from "../models/User";
+import { User, UserDocument } from "../models/User";
 import { Request, Response, NextFunction } from "express";
 import { IVerifyOptions } from "passport-local";
 import { WriteError } from "mongodb";
 import { check, sanitize, validationResult } from "express-validator";
 import "../config/passport";
+import { ACCESS_TOKENS } from "../util/secrets";
 
 /**
  * Login page.
@@ -27,10 +25,8 @@ export const getLogin = (req: Request, res: Response) => {
  * @route POST /login
  */
 export const postLogin = async (req: Request, res: Response, next: NextFunction) => {
-    await check("email", "Email is not valid").isEmail().run(req);
-    await check("password", "Password cannot be blank").isLength({min: 1}).run(req);
-    // eslint-disable-next-line @typescript-eslint/camelcase
-    await sanitize("email").normalizeEmail({ gmail_remove_dots: false }).run(req);
+    await check("username", "Username must be at least three characters").isLength({ min: 3, max: 255 }).run(req);
+    await check("password", "Password cannot be blank").isLength({ min: 1, max: 255 }).run(req);
 
     const errors = validationResult(req);
 
@@ -42,7 +38,7 @@ export const postLogin = async (req: Request, res: Response, next: NextFunction)
     passport.authenticate("local", (err: Error, user: UserDocument, info: IVerifyOptions) => {
         if (err) { return next(err); }
         if (!user) {
-            req.flash("errors", {msg: info.message});
+            req.flash("errors", { msg: info.message });
             return res.redirect("/login");
         }
         req.logIn(user, (err) => {
@@ -82,11 +78,11 @@ export const getSignup = (req: Request, res: Response) => {
  * @route POST /signup
  */
 export const postSignup = async (req: Request, res: Response, next: NextFunction) => {
-    await check("email", "Email is not valid").isEmail().run(req);
+    await check("username", "Username must be at least three characters").isLength({ min: 3, max: 255 }).run(req);
     await check("password", "Password must be at least 4 characters long").isLength({ min: 4 }).run(req);
     await check("confirmPassword", "Passwords do not match").equals(req.body.password).run(req);
-    // eslint-disable-next-line @typescript-eslint/camelcase
-    await sanitize("email").normalizeEmail({ gmail_remove_dots: false }).run(req);
+    await check("accessToken", "Access token is invalid!").isIn(ACCESS_TOKENS).run(req);
+
 
     const errors = validationResult(req);
 
@@ -96,23 +92,31 @@ export const postSignup = async (req: Request, res: Response, next: NextFunction
     }
 
     const user = new User({
-        email: req.body.email,
-        password: req.body.password
+        username: req.body.username,
+        password: req.body.password,
+        accessToken: req.body.accessToken
     });
 
-    User.findOne({ email: req.body.email }, (err, existingUser) => {
+    User.findOne({ accessToken: req.body.accessToken }, (err, existingUser) => {
         if (err) { return next(err); }
         if (existingUser) {
-            req.flash("errors", { msg: "Account with that email address already exists." });
+            req.flash("errors", { msg: "Access token already in use!" });
             return res.redirect("/signup");
         }
-        user.save((err) => {
+        User.findOne({ email: req.body.username }, (err, existingUser) => {
             if (err) { return next(err); }
-            req.logIn(user, (err) => {
-                if (err) {
-                    return next(err);
-                }
-                res.redirect("/");
+            if (existingUser) {
+                req.flash("errors", { msg: "Account with that username already exists." });
+                return res.redirect("/signup");
+            }
+            user.save((err) => {
+                if (err) { return next(err); }
+                req.logIn(user, (err) => {
+                    if (err) {
+                        return next(err);
+                    }
+                    res.redirect("/");
+                });
             });
         });
     });
@@ -133,10 +137,6 @@ export const getAccount = (req: Request, res: Response) => {
  * @route POST /account/profile
  */
 export const postUpdateProfile = async (req: Request, res: Response, next: NextFunction) => {
-    await check("email", "Please enter a valid email address.").isEmail().run(req);
-    // eslint-disable-next-line @typescript-eslint/camelcase
-    await sanitize("email").normalizeEmail({ gmail_remove_dots: false }).run(req);
-
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -147,17 +147,13 @@ export const postUpdateProfile = async (req: Request, res: Response, next: NextF
     const user = req.user as UserDocument;
     User.findById(user.id, (err, user: UserDocument) => {
         if (err) { return next(err); }
-        user.email = req.body.email || "";
-        user.profile.name = req.body.name || "";
-        user.profile.gender = req.body.gender || "";
-        user.profile.location = req.body.location || "";
-        user.profile.website = req.body.website || "";
+        user.summonerName = req.body.summonerName || "";
         user.save((err: WriteError) => {
             if (err) {
-                if (err.code === 11000) {
-                    req.flash("errors", { msg: "The email address you have entered is already associated with an account." });
-                    return res.redirect("/account");
-                }
+                // if (err.code === 11000) {
+                //     req.flash("errors", { msg: "The summoner name you have entered is already associated with an account." });
+                //     return res.redirect("/account");
+                // }
                 return next(err);
             }
             req.flash("success", { msg: "Profile information has been updated." });
@@ -231,68 +227,6 @@ export const getReset = (req: Request, res: Response, next: NextFunction) => {
 };
 
 /**
- * Process the reset password request.
- * @route POST /reset/:token
- */
-export const postReset = async (req: Request, res: Response, next: NextFunction) => {
-    await check("password", "Password must be at least 4 characters long.").isLength({ min: 4 }).run(req);
-    await check("confirm", "Passwords must match.").equals(req.body.password).run(req);
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        req.flash("errors", errors.array());
-        return res.redirect("back");
-    }
-
-    async.waterfall([
-        function resetPassword(done: Function) {
-            User
-                .findOne({ passwordResetToken: req.params.token })
-                .where("passwordResetExpires").gt(Date.now())
-                .exec((err, user: any) => {
-                    if (err) { return next(err); }
-                    if (!user) {
-                        req.flash("errors", { msg: "Password reset token is invalid or has expired." });
-                        return res.redirect("back");
-                    }
-                    user.password = req.body.password;
-                    user.passwordResetToken = undefined;
-                    user.passwordResetExpires = undefined;
-                    user.save((err: WriteError) => {
-                        if (err) { return next(err); }
-                        req.logIn(user, (err) => {
-                            done(err, user);
-                        });
-                    });
-                });
-        },
-        function sendResetPasswordEmail(user: UserDocument, done: Function) {
-            const transporter = nodemailer.createTransport({
-                service: "SendGrid",
-                auth: {
-                    user: process.env.SENDGRID_USER,
-                    pass: process.env.SENDGRID_PASSWORD
-                }
-            });
-            const mailOptions = {
-                to: user.email,
-                from: "express-ts@starter.com",
-                subject: "Your password has been changed",
-                text: `Hello,\n\nThis is a confirmation that the password for your account ${user.email} has just been changed.\n`
-            };
-            transporter.sendMail(mailOptions, (err) => {
-                req.flash("success", { msg: "Success! Your password has been changed." });
-                done(err);
-            });
-        }
-    ], (err) => {
-        if (err) { return next(err); }
-        res.redirect("/");
-    });
-};
-
-/**
  * Forgot Password page.
  * @route GET /forgot
  */
@@ -302,70 +236,5 @@ export const getForgot = (req: Request, res: Response) => {
     }
     res.render("account/forgot", {
         title: "Forgot Password"
-    });
-};
-
-/**
- * Create a random token, then the send user an email with a reset link.
- * @route POST /forgot
- */
-export const postForgot = async (req: Request, res: Response, next: NextFunction) => {
-    await check("email", "Please enter a valid email address.").isEmail().run(req);
-    // eslint-disable-next-line @typescript-eslint/camelcase
-    await sanitize("email").normalizeEmail({ gmail_remove_dots: false }).run(req);
-
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        req.flash("errors", errors.array());
-        return res.redirect("/forgot");
-    }
-
-    async.waterfall([
-        function createRandomToken(done: Function) {
-            crypto.randomBytes(16, (err, buf) => {
-                const token = buf.toString("hex");
-                done(err, token);
-            });
-        },
-        function setRandomToken(token: AuthToken, done: Function) {
-            User.findOne({ email: req.body.email }, (err, user: any) => {
-                if (err) { return done(err); }
-                if (!user) {
-                    req.flash("errors", { msg: "Account with that email address does not exist." });
-                    return res.redirect("/forgot");
-                }
-                user.passwordResetToken = token;
-                user.passwordResetExpires = Date.now() + 3600000; // 1 hour
-                user.save((err: WriteError) => {
-                    done(err, token, user);
-                });
-            });
-        },
-        function sendForgotPasswordEmail(token: AuthToken, user: UserDocument, done: Function) {
-            const transporter = nodemailer.createTransport({
-                service: "SendGrid",
-                auth: {
-                    user: process.env.SENDGRID_USER,
-                    pass: process.env.SENDGRID_PASSWORD
-                }
-            });
-            const mailOptions = {
-                to: user.email,
-                from: "hackathon@starter.com",
-                subject: "Reset your password on Hackathon Starter",
-                text: `You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\n
-          Please click on the following link, or paste this into your browser to complete the process:\n\n
-          http://${req.headers.host}/reset/${token}\n\n
-          If you did not request this, please ignore this email and your password will remain unchanged.\n`
-            };
-            transporter.sendMail(mailOptions, (err) => {
-                req.flash("info", { msg: `An e-mail has been sent to ${user.email} with further instructions.` });
-                done(err);
-            });
-        }
-    ], (err) => {
-        if (err) { return next(err); }
-        res.redirect("/forgot");
     });
 };

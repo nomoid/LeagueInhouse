@@ -1,14 +1,12 @@
 import passport from "passport";
 import passportLocal from "passport-local";
-import passportFacebook from "passport-facebook";
 import _ from "lodash";
 
-// import { User, UserType } from '../models/User';
 import { User, UserDocument } from "../models/User";
 import { Request, Response, NextFunction } from "express";
+import { ACCESS_TOKENS } from "../util/secrets";
 
 const LocalStrategy = passportLocal.Strategy;
-const FacebookStrategy = passportFacebook.Strategy;
 
 passport.serializeUser<any, any>((user, done) => {
     done(undefined, user.id);
@@ -24,18 +22,21 @@ passport.deserializeUser((id, done) => {
 /**
  * Sign in using Email and Password.
  */
-passport.use(new LocalStrategy({ usernameField: "email" }, (email, password, done) => {
-    User.findOne({ email: email.toLowerCase() }, (err, user: any) => {
+passport.use(new LocalStrategy({ usernameField: "username" }, (username, password, done) => {
+    User.findOne({ username: username.toLowerCase() }, (err, user: UserDocument) => {
         if (err) { return done(err); }
         if (!user) {
-            return done(undefined, false, { message: `Email ${email} not found.` });
+            return done(undefined, false, { message: "Invalid username or password." });
         }
         user.comparePassword(password, (err: Error, isMatch: boolean) => {
             if (err) { return done(err); }
             if (isMatch) {
+                if (!ACCESS_TOKENS.includes(user.accessToken)) {
+                    return done(undefined, false, { message: `User ${username} has invalid access token.` });
+                }
                 return done(undefined, user);
             }
-            return done(undefined, false, { message: "Invalid email or password." });
+            return done(undefined, false, { message: "Invalid username or password." });
         });
     });
 }));
@@ -50,16 +51,16 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
     res.redirect("/login");
 };
 
-/**
- * Authorization Required middleware.
- */
-export const isAuthorized = (req: Request, res: Response, next: NextFunction) => {
-    const provider = req.path.split("/").slice(-1)[0];
+// /**
+//  * Authorization Required middleware.
+//  */
+// export const isAuthorized = (req: Request, res: Response, next: NextFunction) => {
+//     const provider = req.path.split("/").slice(-1)[0];
 
-    const user = req.user as UserDocument;
-    if (_.find(user.tokens, { kind: provider })) {
-        next();
-    } else {
-        res.redirect(`/auth/${provider}`);
-    }
-};
+//     const user = req.user as UserDocument;
+//     if (_.find(user.tokens, { kind: provider })) {
+//         next();
+//     } else {
+//         res.redirect(`/auth/${provider}`);
+//     }
+// };

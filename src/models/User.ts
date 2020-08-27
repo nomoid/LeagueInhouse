@@ -3,27 +3,16 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 
 export type UserDocument = mongoose.Document & {
-    email: string;
+    username: string;
     password: string;
-    passwordResetToken: string;
-    passwordResetExpires: Date;
-
-    facebook: string;
-    tokens: AuthToken[];
-
-    profile: {
-        name: string;
-        gender: string;
-        location: string;
-        website: string;
-        picture: string;
-    };
+    accessToken: string;
+    summonerName: string;
 
     comparePassword: comparePasswordFunction;
     gravatar: (size: number) => string;
 };
 
-type comparePasswordFunction = (candidatePassword: string, cb: (err: mongoose.Error, isMatch: boolean) => {}) => void;
+type comparePasswordFunction = (candidatePassword: string, cb: (err: mongoose.Error, isMatch: boolean) => void) => void;
 
 export interface AuthToken {
     accessToken: string;
@@ -31,23 +20,10 @@ export interface AuthToken {
 }
 
 const userSchema = new mongoose.Schema({
-    email: { type: String, unique: true },
+    username: { type: String, unique: true },
     password: String,
-    passwordResetToken: String,
-    passwordResetExpires: Date,
-
-    facebook: String,
-    twitter: String,
-    google: String,
-    tokens: Array,
-
-    profile: {
-        name: String,
-        gender: String,
-        location: String,
-        website: String,
-        picture: String
-    }
+    accessToken: { type: String, unique: true },
+    summonerName: String
 }, { timestamps: true });
 
 /**
@@ -78,10 +54,10 @@ userSchema.methods.comparePassword = comparePassword;
  * Helper method for getting user's gravatar.
  */
 userSchema.methods.gravatar = function (size: number = 200) {
-    if (!this.email) {
+    if (!this.username) {
         return `https://gravatar.com/avatar/?s=${size}&d=retro`;
     }
-    const md5 = crypto.createHash("md5").update(this.email).digest("hex");
+    const md5 = crypto.createHash("md5").update(this.username).digest("hex");
     return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
 };
 

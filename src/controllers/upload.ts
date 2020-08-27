@@ -3,6 +3,7 @@ import moment from "moment";
 import "moment-timezone";
 import { Replay, longFromBigInt } from "../models/Replay";
 import { parse } from "../processing/parser";
+import { UserDocument } from "../models/User";
 
 function today() {
     return moment().tz("America/New_York").format("YYYY-MM-DD");
@@ -28,6 +29,10 @@ export const getUploadSuccess = (req: Request, res: Response) => {
 };
 
 export const postUpload = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+        return res.redirect("/");
+    }
+    const user = req.user as UserDocument;
     let mode = req.body.mode;
     if (mode === "other") {
         mode = req.body.modeOther;
@@ -37,6 +42,7 @@ export const postUpload = (req: Request, res: Response, next: NextFunction) => {
         const matchId = longFromBigInt(metadata.matchId);
         const replay = new Replay({
             matchId: matchId,
+            submitter: user.id,
             mode: mode,
             date: req.body.date,
         });
