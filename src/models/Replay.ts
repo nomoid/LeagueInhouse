@@ -16,15 +16,17 @@ export type ReplayDocument = mongoose.Document & {
     mode: string;
     date: string;
     submitter: string;
+    draft?: string[];
     loadReplay: (next: LoadReplayCallback) => void;
     saveReplay: (data: Buffer, next: SaveReplayCallback) => void;
 };
 
 const replaySchema = new mongoose.Schema({
-    matchId: { type: schemaTypes.Long, unique: true },
-    mode: String,
-    date: String,
-    submitter: String
+    matchId: { type: schemaTypes.Long, unique: true, required: true },
+    mode: { type: String, required: true },
+    date: { type: String, required: true },
+    submitter: { type: String, required: true },
+    draft: { type: [String] }
 }, { timestamps: true });
 
 function saveReplay(replay: ReplayDocument, buffer: Buffer, next: SaveReplayCallback) {
@@ -65,11 +67,11 @@ function loadReplay(replay: ReplayDocument, next: LoadReplayCallback) {
     });
 }
 
-replaySchema.methods.saveReplay = function(this: ReplayDocument, data: Buffer, next: SaveReplayCallback) {
+replaySchema.methods.saveReplay = function (this: ReplayDocument, data: Buffer, next: SaveReplayCallback) {
     saveReplay(this, data, next);
 };
 
-replaySchema.methods.loadReplay = function(this: ReplayDocument, next: LoadReplayCallback) {
+replaySchema.methods.loadReplay = function (this: ReplayDocument, next: LoadReplayCallback) {
     loadReplay(this, next);
 };
 

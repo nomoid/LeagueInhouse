@@ -3,7 +3,7 @@ import moment from "moment";
 import "moment-timezone";
 import { Replay, longFromBigInt } from "../models/Replay";
 import { parse } from "../processing/parser";
-import { UserDocument } from "../models/User";
+import { UserDocument, User } from "../models/User";
 
 function today() {
     return moment().tz("America/New_York").format("YYYY-MM-DD");
@@ -13,9 +13,26 @@ export const getUpload = (req: Request, res: Response) => {
     if (!req.user) {
         return res.redirect("/");
     }
+    const user = req.user as UserDocument;
+    if (user.uploadInProgress !== undefined) {
+        return res.redirect("/upload/continue");
+    }
     res.render("upload/index", {
         title: "Upload Replay",
         today: today()
+    });
+};
+
+export const getUploadContinue = (req: Request, res: Response) => {
+    if (!req.user) {
+        return res.redirect("/");
+    }
+    const user = req.user as UserDocument;
+    if (user.uploadInProgress === undefined) {
+        return res.redirect("/upload");
+    }
+    res.render("upload/continue", {
+        title: "Upload Replay"
     });
 };
 
@@ -57,7 +74,16 @@ export const postUpload = (req: Request, res: Response, next: NextFunction) => {
                 if (err) { return next(err); }
                 replay.save((err) => {
                     if (err) { return next(err); }
-                    return res.redirect("/upload/success");
+                    User.findById(user.id, (err, user: UserDocument) => {
+                        if (err) { return next(err); }
+                        user.uploadInProgress = matchId;
+                        user.save((err) => {
+                            if (err) {
+                                return next(err);
+                            }
+                            return res.redirect("/upload/continue");
+                        });
+                    });
                 });
             });
         });

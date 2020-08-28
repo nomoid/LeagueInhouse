@@ -113,6 +113,7 @@ app.post("/account/password", passportConfig.isAuthenticated, userController.pos
 app.post("/account/delete", passportConfig.isAuthenticated, userController.postDeleteAccount);
 app.get("/upload", passportConfig.isAuthenticated, uploadController.getUpload);
 app.post("/upload", upload.single("replay"), passportConfig.isAuthenticated, uploadController.postUpload);
+app.get("/upload/continue", passportConfig.isAuthenticated, uploadController.getUploadContinue);
 app.get("/upload/success", passportConfig.isAuthenticated, uploadController.getUploadSuccess);
 
 export default app;

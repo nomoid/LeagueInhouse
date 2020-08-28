@@ -1,12 +1,18 @@
 import bcrypt from "bcrypt-nodejs";
 import crypto from "crypto";
 import mongoose from "mongoose";
+import mongooseLong from "mongoose-long";
+
+mongooseLong(mongoose);
+
+const schemaTypes = mongoose.Schema.Types;
 
 export type UserDocument = mongoose.Document & {
     username: string;
     password: string;
     accessToken: string;
-    summonerName: string;
+    summonerName?: string;
+    uploadInProgress?: mongoose.Types.Long;
 
     comparePassword: comparePasswordFunction;
     gravatar: (size: number) => string;
@@ -20,10 +26,11 @@ export interface AuthToken {
 }
 
 const userSchema = new mongoose.Schema({
-    username: { type: String, unique: true },
-    password: String,
-    accessToken: { type: String, unique: true },
-    summonerName: String
+    username: { type: String, unique: true, required: true },
+    password: { type: String, required: true },
+    accessToken: { type: String, unique: true, required: true},
+    summonerName: String,
+    uploadInProgress: { type: schemaTypes.Long, unique: true }
 }, { timestamps: true });
 
 /**

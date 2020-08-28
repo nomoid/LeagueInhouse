@@ -29,6 +29,7 @@
         "watch-ts": "tsc -w"
     },
     "dependencies": {
+        "@types/sortablejs": "^1.10.6",
         "async": "^3.1.0",
         "bcrypt-nodejs": "^0.0.3",
         "bluebird": "^3.5.5",
