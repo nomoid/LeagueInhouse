@@ -10,6 +10,14 @@ html(lang='')
     link(rel='stylesheet', href='/css/main.css')
 
   body
+    script(src='/js/lib/jquery-3.1.1.min.js')
+    script(src='/js/lib/bootstrap.min.js')
+    script(src='/js/lib/sortable.js')
+    script(src='/js/lib/jquery-sortable.js')
+    script(src='https://unpkg.com/react@16/umd/react.development.js', crossorigin)
+    script(src='https://unpkg.com/react-dom@16/umd/react-dom.development.js', crossorigin)
+    script(async defer src="https://buttons.github.io/buttons.js")
+
     include partials/header
 
     .container.pl-sm-0.pr-sm-0.pl-lg-3.pr-lg-3
@@ -18,9 +26,4 @@ html(lang='')
 
     include partials/footer
 
-    script(src='/js/lib/jquery-3.1.1.min.js')
-    script(src='/js/lib/bootstrap.min.js')
-    script(src='/js/lib/sortable.js')
-    script(src='/js/lib/jquery-sortable.js')
-    script(async defer src="https://buttons.github.io/buttons.js")
     script(src='/js/main.js')

@@ -29,7 +29,6 @@
         "watch-ts": "tsc -w"
     },
     "dependencies": {
-        "@types/sortablejs": "^1.10.6",
         "async": "^3.1.0",
         "bcrypt-nodejs": "^0.0.3",
         "bluebird": "^3.5.5",
@@ -86,9 +85,12 @@
         "@types/passport-facebook": "^2.1.9",
         "@types/passport-local": "^1.0.33",
         "@types/pug": "^2.0.4",
+        "@types/react": "^16.9.48",
+        "@types/react-dom": "^16.9.8",
         "@types/request": "^2.48.3",
         "@types/request-promise": "^4.1.44",
         "@types/shelljs": "^0.8.5",
+        "@types/sortablejs": "^1.10.6",
         "@types/supertest": "^2.0.8",
         "@types/winston": "^2.4.4",
         "@typescript-eslint/eslint-plugin": "^2.3.1",

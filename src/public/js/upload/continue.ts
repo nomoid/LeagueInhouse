@@ -1,4 +1,6 @@
-import Sortable, { SortableEvent } from "sortablejs"
+declare class Sortable {
+    toArray(): string[];
+}
 
 function isRedRadioSelected() {
     const redRadio = $("#draft-red-radio").get()[0] as HTMLInputElement;
@@ -45,6 +47,12 @@ function updateSortable(sortable: Sortable, side: "blue" | "red") {
     }
 }
 
+function getVersion(callBack: (data: string) => void) {
+    $.getJSON("https://ddragon.leagueoflegends.com/api/versions.json", function (data: string[]) {
+        callBack(data[0]);
+    });
+}
+
 function onLoad() {
     const blueSortable = $("#draft-blue-sortable").sortable({
         onEnd: function (this: Sortable, event) {
@@ -72,4 +80,9 @@ function onLoad() {
     blueRadio.checked = true;
     // Ignore compiler
     eval("checkDraft(document.getElementById(\"draftSelection\").value)");
+    const domContainer = document.querySelector('#champion-display-container');
+    getVersion(function (version) {
+        const e = React.createElement;
+        ReactDOM.render(e(ChampionIcon, { name: "Heimerdinger", version: version }), domContainer);
+    })
 }
