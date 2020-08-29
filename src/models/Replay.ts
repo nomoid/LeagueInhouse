@@ -16,6 +16,7 @@ export type ReplayDocument = mongoose.Document & {
     mode: string;
     date: string;
     submitter: string;
+    incomplete: boolean;
     draft?: {
         blueFirstPick: boolean;
         blueDraft: number[];
@@ -30,6 +31,7 @@ const replaySchema = new mongoose.Schema({
     mode: String,
     date: { type: String, required: true },
     submitter: { type: String, required: true },
+    incomplete: Boolean,
     draft: { 
         blueFirstPick: Boolean,
         blueDraft: [String],

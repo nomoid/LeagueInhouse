@@ -88,6 +88,7 @@ export const postUpload = (req: Request, res: Response, next: NextFunction) => {
             submitter: user.id,
             mode: mode,
             date: req.body.date,
+            incomplete: true
         });
 
         Replay.findOne({ matchId: matchId }, (err, existingReplay) => {
@@ -182,6 +183,7 @@ export const postUploadContinue = async (req: Request, res: Response, next: Next
                 if (err) {
                     return next(err);
                 }
+                replay.incomplete = false;
                 if (req.body.toDraft === "draft") {
                     const draftResultBlue = JSON.parse(req.body.draftResultBlue) as string[];
                     const draftResultRed = JSON.parse(req.body.draftResultRed) as string[];
@@ -196,14 +198,13 @@ export const postUploadContinue = async (req: Request, res: Response, next: Next
                         blueDraft: blueDraft,
                         redDraft: redDraft
                     };
-                    return replay.save((err) => {
-                        if (err) {
-                            return next(err);
-                        }
-                        return res.redirect("/upload/success");
-                    });
                 }
-                return res.redirect("/upload/success");
+                return replay.save((err) => {
+                    if (err) {
+                        return next(err);
+                    }
+                    return res.redirect("/upload/success");
+                });
             });
         });
     }
