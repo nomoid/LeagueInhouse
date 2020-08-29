@@ -78,7 +78,8 @@ export const postUpload = (req: Request, res: Response, next: NextFunction) => {
     const user = req.user as UserDocument;
     let mode = req.body.mode;
     if (mode === "other") {
-        mode = req.body.modeOther;
+        const modeOther = req.body.modeOther as string;
+        mode = modeOther.toLowerCase();
     }
     const matchData = req.file.buffer;
     parse(matchData).then(function (metadata) {
@@ -136,10 +137,6 @@ export const postUploadContinue = async (req: Request, res: Response, next: Next
                 return Array.isArray(arr) && arr.length === teamSize;
             }
         );
-        // .isArray({
-        //     min: teamSize,
-        //     max: teamSize
-        // });
         for (let i = 0; i < teamSize; i++) {
             chain = chain.contains(`${color}${i+1}`);
         }
