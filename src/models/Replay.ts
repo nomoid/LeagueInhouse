@@ -34,8 +34,8 @@ const replaySchema = new mongoose.Schema({
     incomplete: Boolean,
     draft: { 
         blueFirstPick: Boolean,
-        blueDraft: [String],
-        redDraft: [String]
+        blueDraft: [Number],
+        redDraft: [Number]
     }
 }, { timestamps: true });
 
