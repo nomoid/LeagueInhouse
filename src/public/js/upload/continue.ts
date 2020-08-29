@@ -54,6 +54,26 @@ function getVersion(callBack: (data: string) => void) {
 }
 
 function onLoad() {
+    // Get player data
+    const playerDataDiv = $("#draft-player-data").get()[0] as HTMLDivElement;
+    const playerData = JSON.parse(playerDataDiv.innerHTML);
+    console.log(playerData);
+    getVersion(function (version) {
+        for (const color of ["blue", "red"]) {
+            for (let i = 0; i < 5; i++) {
+                const li = $(`#draft-${color}${i + 1}-name`).get()[0] as HTMLLIElement;
+                const singlePlayerData = playerData[color][i];
+                li.innerHTML = singlePlayerData.summonerName;
+                const domContainer = document.querySelector(`#draft-${color}${i + 1}-champion`);
+                const e = React.createElement;
+                ReactDOM.render(e(ChampionIcon, {
+                    name: singlePlayerData.champion,
+                    version: version,
+                    width: 20
+                }), domContainer);
+            }
+        }
+    });
     const blueSortable = $("#draft-blue-sortable").sortable({
         onEnd: function (this: Sortable, event) {
             updateSortable(this, "blue");
@@ -80,9 +100,4 @@ function onLoad() {
     blueRadio.checked = true;
     // Ignore compiler
     eval("checkDraft(document.getElementById(\"draftSelection\").value)");
-    const domContainer = document.querySelector('#champion-display-container');
-    getVersion(function (version) {
-        const e = React.createElement;
-        ReactDOM.render(e(ChampionIcon, { name: "Heimerdinger", version: version }), domContainer);
-    })
 }

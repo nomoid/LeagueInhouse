@@ -1,9 +1,10 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 import moment from "moment";
 import "moment-timezone";
-import { Replay, longFromBigInt } from "../models/Replay";
+import { longFromBigInt, Replay } from "../models/Replay";
+import { User, UserDocument } from "../models/User";
 import { parse } from "../processing/parser";
-import { UserDocument, User } from "../models/User";
+import { extractAllPlayers } from "../processing/player";
 
 function today() {
     return moment().tz("America/New_York").format("YYYY-MM-DD");
@@ -23,7 +24,7 @@ export const getUpload = (req: Request, res: Response) => {
     });
 };
 
-export const getUploadContinue = (req: Request, res: Response) => {
+export const getUploadContinue = (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
         return res.redirect("/");
     }
@@ -31,8 +32,32 @@ export const getUploadContinue = (req: Request, res: Response) => {
     if (user.uploadInProgress === undefined) {
         return res.redirect("/upload");
     }
-    res.render("upload/continue", {
-        title: "Upload Replay"
+    const matchId = user.uploadInProgress;
+    // Get uploaded match info
+    Replay.findOne({ matchId: matchId }, (err, replay) => {
+        if (err) {
+            return next(err);
+        }
+        if (!replay) {
+            user.uploadInProgress = undefined;
+            return user.save((err) => {
+                if (err) {
+                    return next(err);
+                }
+                return res.redirect("/upload");
+            });
+        }
+        replay.loadReplay((err, buffer) => {
+            if (err) {
+                return next(err);
+            }
+            parse(buffer as Buffer).then((metadata) => {
+                res.render("upload/continue", {
+                    title: "Upload Replay",
+                    players: extractAllPlayers(metadata)
+                });
+            });
+        });
     });
 };
 

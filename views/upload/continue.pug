@@ -1,6 +1,11 @@
 
 extends ../layout
 
+mixin player(color, number)
+  li.form-control.d-flex.justify-content-left(id=`draft-${color}${number}`, data-id=`${color}${number}`)
+    div.col-sm-2(id=`draft-${color}${number}-champion`)
+    div.col(id=`draft-${color}${number}-name`) Player #{number}
+
 block content
   h2 Upload Replay
   hr
@@ -10,8 +15,7 @@ block content
     input(id='draft-result-blue', type='hidden', name='draftResultBlue', value='')
     input(id='draft-result-red', type='hidden', name='draftResultRed', value='')
     .form-group.row.justify-content-md-center
-      div.offset-sm-3.col-sm-7(id='champion-display-container')
-    .form-group.row.justify-content-md-center
+      div(id='draft-player-data', style='display:none;') #{JSON.stringify(players)}
       p.offset-sm-3.col-sm-7 Please finish filling in the information for your uploaded replay:
     .form-group.row.justify-content-md-center
       label.col-sm-3.col-form-label.text-right.font-weight-bold(for='mode') Was there a draft?
@@ -56,21 +60,25 @@ block content
         li.form-control.border-0 3rd
         li.form-control.border-0 4th
       ul.col-sm-3(id="draft-blue-sortable")
-        li.form-control(id="draft-blue1",data-id="blue1") Player 1
-        li.form-control(id="draft-blue2",data-id="blue2") Player 2
-        li.form-control(id="draft-blue3",data-id="blue3") Player 3
-        li.form-control(id="draft-blue4",data-id="blue4") Player 4
-        li.form-control(id="draft-blue5",data-id="blue5") Player 5
+        +player("blue","1")
+        +player("blue","2")
+        +player("blue","3")
+        +player("blue","4")
+        +player("blue","5")
       ul.col-sm-3(id="draft-red-sortable")
-        li.form-control(id="draft-red1",data-id="red1") Player 1
-        li.form-control(id="draft-red2",data-id="red2") Player 2
-        li.form-control(id="draft-red3",data-id="red3") Player 3
-        li.form-control(id="draft-red4",data-id="red4") Player 4
-        li.form-control(id="draft-red5",data-id="red5") Player 5
+        +player("red","1")
+        +player("red","2")
+        +player("red","3")
+        +player("red","4")
+        +player("red","5")
     .form-group.row.justify-content-md-center
-      .offset-sm-3.col-sm-7
+      .row.offset-sm-3.col-sm-7
         button.col-sm-3.btn.btn-primary(type='submit')
           i.fa.fa-upload
           | Upload
+        .col-sm-1
+        button.col-sm-3.btn.btn-danger(type='cancel')
+          i.fa.fa-ban
+          | Cancel
   script(src="/js/react/champion-icon.js")
   script(src="/js/upload/continue.js")
