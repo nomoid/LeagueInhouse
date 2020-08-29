@@ -3,13 +3,16 @@ import mongooseLong from "mongoose-long";
 import { createModel } from "mongoose-gridfs";
 import { Readable } from "stream";
 import { HookNextFunction } from "mongoose";
+import { STORAGE_LOCATION } from "../util/secrets";
+import { AZURE_STORAGE_CONNECTION_STRING } from "../util/secrets";
+import { BlobServiceClient } from "@azure/storage-blob";
 
 mongooseLong(mongoose);
 
 const schemaTypes = mongoose.Schema.Types;
 
 type LoadReplayCallback = (error?: Error, data?: Buffer) => any;
-type SaveReplayCallback = HookNextFunction;
+type SaveReplayCallback = (error?: Error, storageLocation?: "mongodb" | "azure") => any;
 
 export type ReplayDocument = mongoose.Document & {
     matchId: mongoose.Types.Long;
@@ -17,6 +20,7 @@ export type ReplayDocument = mongoose.Document & {
     date: string;
     submitter: string;
     incomplete: boolean;
+    storageLocation: string;
     draft?: {
         blueFirstPick: boolean;
         blueDraft: number[];
@@ -32,6 +36,7 @@ const replaySchema = new mongoose.Schema({
     date: { type: String, required: true },
     submitter: { type: String, required: true },
     incomplete: Boolean,
+    storageLocation: { type: String },
     draft: { 
         blueFirstPick: Boolean,
         blueDraft: [Number],
@@ -39,42 +44,84 @@ const replaySchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+async function saveReplayAzure(buffer: Buffer, fileName: string, connectionString: string) {
+    const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+    const containerClient = blobServiceClient.getContainerClient("replays");
+    await containerClient.createIfNotExists();
+    
+    const blockBlobClient = containerClient.getBlockBlobClient(fileName);
+    await blockBlobClient.upload(buffer.buffer, buffer.length);
+}
+
+async function loadReplayAzure(fileName: string, connectionString: string) {
+    const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+    const containerClient = blobServiceClient.getContainerClient("replays");
+    await containerClient.createIfNotExists();
+    
+    const blockBlobClient = containerClient.getBlockBlobClient(fileName);
+    if (!blockBlobClient.exists()) {
+        return;
+    }
+
+    return blockBlobClient.downloadToBuffer(0);
+}
+
 function saveReplay(replay: ReplayDocument, buffer: Buffer, next: SaveReplayCallback) {
     const Attachment = createModel();
     const matchIdString = replay.matchId.toString();
     const fileName = `${matchIdString}.rofl`;
-    const stream = new Readable();
-    stream.push(buffer);
-    stream.push(null);
-    const options = {
-        filename: fileName,
-        contentType: "application/octet-stream"
-    };
-    Attachment.write(options, stream, (error, file) => {
-        if (error) {
-            return next(error);
-        }
-        else {
-            return next();
-        }
-    });
+    if (STORAGE_LOCATION === "azure" && AZURE_STORAGE_CONNECTION_STRING) {
+        saveReplayAzure(buffer, fileName, AZURE_STORAGE_CONNECTION_STRING).then(() => {
+            return next(undefined, "azure");
+        });
+    }
+    else {
+        const stream = new Readable();
+        stream.push(buffer);
+        stream.push(null);
+        const options = {
+            filename: fileName,
+            contentType: "application/octet-stream"
+        };
+        Attachment.write(options, stream, (error, file) => {
+            if (error) {
+                return next(error);
+            }
+            else {
+                return next(undefined, "mongodb");
+            }
+        });
+    }
 }
 
 function loadReplay(replay: ReplayDocument, next: LoadReplayCallback) {
     const Attachment = createModel();
     const matchIdString = replay.matchId.toString();
     const fileName = `${matchIdString}.rofl`;
-    const options = {
-        filename: fileName,
-    };
-    Attachment.read(options, (error, buffer) => {
-        if (error) {
-            return next(error);
+    if (replay.storageLocation === "azure") {
+        if (!AZURE_STORAGE_CONNECTION_STRING) {
+            return next(new Error("No Azure connection string for Azure replay"));
         }
-        else {
+        loadReplayAzure(fileName, AZURE_STORAGE_CONNECTION_STRING).then((buffer) => {
+            if (!buffer) {
+                return next(new Error("Failed to fetch Azure replay"));
+            }
             return next(undefined, buffer);
-        }
-    });
+        });
+    }
+    else {
+        const options = {
+            filename: fileName,
+        };
+        Attachment.read(options, (error, buffer) => {
+            if (error) {
+                return next(error);
+            }
+            else {
+                return next(undefined, buffer);
+            }
+        });
+    }
 }
 
 replaySchema.methods.saveReplay = function (this: ReplayDocument, data: Buffer, next: SaveReplayCallback) {

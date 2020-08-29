@@ -98,8 +98,9 @@ export const postUpload = (req: Request, res: Response, next: NextFunction) => {
                 req.flash("errors", { msg: "The same replay has already been uploaded." });
                 return res.redirect("/upload");
             }
-            replay.saveReplay(matchData, (err) => {
+            replay.saveReplay(matchData, (err, storageLocation) => {
                 if (err) { return next(err); }
+                replay.storageLocation = storageLocation as string;
                 replay.save((err) => {
                     if (err) { return next(err); }
                     User.findById(user.id, (err, user: UserDocument) => {
