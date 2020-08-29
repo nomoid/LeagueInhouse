@@ -10,7 +10,7 @@ block content
   h2 Upload Replay
   hr
 
-  form.form-horizontal(method='POST', enctype='multipart/form-data')
+  form.form-horizontal(method='POST')
     input(type='hidden', name='_csrf', value=_csrf)
     input(id='draft-result-blue', type='hidden', name='draftResultBlue', value='')
     input(id='draft-result-red', type='hidden', name='draftResultRed', value='')
@@ -44,12 +44,12 @@ block content
       ul.col-sm-3
         li.form-control
           label(for="draft-blue-radio") Blue Team (
-          input(type="radio",id="draft-blue-radio", name="draft-radio", value="blue")
+          input(type="radio",id="draft-blue-radio", name="draftRadio", value="blue")
           label(for="draft-blue-radio") &nbsp;First Pick)
       ul.col-sm-3
         li.form-control
           label(for="draft-red-radio") Red Team (
-          input(type="radio",id="draft-red-radio", name="draft-radio", value="red")
+          input(type="radio",id="draft-red-radio", name="draftRadio", value="red")
           label(for="draft-red-radio") &nbsp;First Pick)
     .form-group.row.justify-content-md-center(id="draft-row-2" style="display:none;")
       label.col-sm-3.col-form-label.text-right.font-weight-bold
@@ -73,11 +73,11 @@ block content
         +player("red","5")
     .form-group.row.justify-content-md-center
       .row.offset-sm-3.col-sm-7
-        button.col-sm-3.btn.btn-primary(type='submit')
+        button.col-sm-3.btn.btn-primary(type='submit', name='submit')
           i.fa.fa-upload
           | Upload
         .col-sm-1
-        button.col-sm-3.btn.btn-danger(type='cancel')
+        button.col-sm-3.btn.btn-danger(type='submit', name='cancel', formnovalidate)
           i.fa.fa-ban
           | Cancel
   script(src="/js/react/champion-icon.js")

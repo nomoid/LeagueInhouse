@@ -3,7 +3,7 @@ import { User, UserDocument } from "../models/User";
 import { Request, Response, NextFunction } from "express";
 import { IVerifyOptions } from "passport-local";
 import { WriteError } from "mongodb";
-import { check, sanitize, validationResult } from "express-validator";
+import { check, validationResult } from "express-validator";
 import "../config/passport";
 import { ACCESS_TOKENS } from "../util/secrets";
 

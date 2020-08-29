@@ -63,7 +63,8 @@ function onLoad() {
             for (let i = 0; i < 5; i++) {
                 const li = $(`#draft-${color}${i + 1}-name`).get()[0] as HTMLLIElement;
                 const singlePlayerData = playerData[color][i];
-                li.innerHTML = singlePlayerData.summonerName;
+                const summonerName = $('<div>').text(singlePlayerData.summonerName).html();
+                li.innerHTML = summonerName;
                 const domContainer = document.querySelector(`#draft-${color}${i + 1}-champion`);
                 const e = React.createElement;
                 ReactDOM.render(e(ChampionIcon, {

@@ -16,17 +16,25 @@ export type ReplayDocument = mongoose.Document & {
     mode: string;
     date: string;
     submitter: string;
-    draft?: string[];
+    draft?: {
+        blueFirstPick: boolean;
+        blueDraft: number[];
+        redDraft: number[];
+    };
     loadReplay: (next: LoadReplayCallback) => void;
     saveReplay: (data: Buffer, next: SaveReplayCallback) => void;
 };
 
 const replaySchema = new mongoose.Schema({
     matchId: { type: schemaTypes.Long, unique: true, required: true },
-    mode: { type: String, required: true },
+    mode: String,
     date: { type: String, required: true },
     submitter: { type: String, required: true },
-    draft: { type: [String] }
+    draft: { 
+        blueFirstPick: Boolean,
+        blueDraft: [String],
+        redDraft: [String]
+    }
 }, { timestamps: true });
 
 function saveReplay(replay: ReplayDocument, buffer: Buffer, next: SaveReplayCallback) {

@@ -5,6 +5,7 @@ import { longFromBigInt, Replay } from "../models/Replay";
 import { User, UserDocument } from "../models/User";
 import { parse } from "../processing/parser";
 import { extractAllPlayers } from "../processing/player";
+import { check, validationResult } from "express-validator";
 
 function today() {
     return moment().tz("America/New_York").format("YYYY-MM-DD");
@@ -113,4 +114,97 @@ export const postUpload = (req: Request, res: Response, next: NextFunction) => {
             });
         });
     });
+};
+
+export const postUploadContinue = async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+        return res.redirect("/");
+    }
+    for (const color of ["blue", "red"]) {
+        let field;
+        if (color === "blue") {
+            field = "draftResultBlue";
+        }
+        else {
+            field = "draftResultRed";
+        }
+        const teamSize = 5;
+        let chain = check(field, "Validation bug: Invalid draft ordering!").custom(
+            (value) => {
+                const arr = JSON.parse(value);
+                return Array.isArray(arr) && arr.length === teamSize;
+            }
+        );
+        // .isArray({
+        //     min: teamSize,
+        //     max: teamSize
+        // });
+        for (let i = 0; i < teamSize; i++) {
+            chain = chain.contains(`${color}${i+1}`);
+        }
+        await chain.run(req);
+    }
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        req.flash("errors", errors.array());
+        return res.redirect("/upload/continue");
+    }
+    const user = req.user as UserDocument;
+    if (user.uploadInProgress === undefined) {
+        return res.redirect("/upload");
+    }
+    const matchId = user.uploadInProgress;
+    if (req.body.cancel === "") {
+        Replay.deleteOne({ matchId: matchId }, (err) => {
+            if (err) {
+                return next(err);
+            }
+            return res.redirect("/upload");
+        });
+    }
+    else {
+        Replay.findOne({ matchId: matchId }, (err, replay) => {
+            if (err) {
+                return next(err);
+            }
+            if (!replay) {
+                user.uploadInProgress = undefined;
+                return user.save((err) => {
+                    if (err) {
+                        return next(err);
+                    }
+                    return res.redirect("/upload");
+                });
+            }
+            user.uploadInProgress = undefined;
+            user.save((err) => {
+                if (err) {
+                    return next(err);
+                }
+                if (req.body.toDraft === "draft") {
+                    const draftResultBlue = JSON.parse(req.body.draftResultBlue) as string[];
+                    const draftResultRed = JSON.parse(req.body.draftResultRed) as string[];
+                    const blueDraft = draftResultBlue.map((s) => {
+                        return parseInt(s.replace("blue", ""));
+                    });
+                    const redDraft = draftResultRed.map((s) => {
+                        return parseInt(s.replace("red", ""));
+                    });
+                    replay.draft = {
+                        blueFirstPick: req.body.draftRadio === "blue",
+                        blueDraft: blueDraft,
+                        redDraft: redDraft
+                    };
+                    return replay.save((err) => {
+                        if (err) {
+                            return next(err);
+                        }
+                        return res.redirect("/upload/success");
+                    });
+                }
+                return res.redirect("/upload/success");
+            });
+        });
+    }
 };
