@@ -4,7 +4,27 @@ block content
   h2 Upload Replay
   hr
 
-  form.form-horizontal(method='POST', enctype='multipart/form-data')
+  style(type="text/css").
+    #overlay {
+      background: #ffffff;
+      color: #666666;
+      position: fixed;
+      height: 100%;
+      width: 100%;
+      z-index: 9999;
+      top: 0;
+      left: 0;
+      float: left;
+      text-align: center;
+      padding-top: 25%;
+      opacity: .80;
+    }
+
+  div(id="overlay", style="display:none;")
+    div.spinner-border(role="status")
+    div Uploading... (This may take a little while)
+
+  form.form-horizontal(method='POST', enctype='multipart/form-data', onsubmit='showOverlay();')
     input(type='hidden', name='_csrf', value=_csrf)
     .form-group.row.justify-content-md-center
       p.offset-sm-3.col-sm-7 Please fill in all of the information below so we can keep track of accurate stats.
@@ -51,6 +71,11 @@ block content
         input.form-control(type="text", name="modeOther", id="modeOther", style="display:none;")
     .form-group.row.justify-content-md-center
       .offset-sm-3.col-sm-7
+        script.
+          function showOverlay() {
+              var element = document.getElementById("overlay");
+              $("#overlay").fadeIn();
+          }
         button.col-sm-3.btn.btn-primary(type='submit')
           i.fa.fa-upload
           | Upload
