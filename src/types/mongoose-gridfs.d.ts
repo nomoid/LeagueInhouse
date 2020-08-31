@@ -25,7 +25,7 @@ declare module "mongoose-gridfs" {
         findById(id: mongo.ObjectID, done: DoneCallback): void;
     }
 
-    class FileSchema {
+    interface FileSchema extends mongoose.Model<mongoose.Document, {}> {
         write(file: any, readstream: Readable, done?: DoneCallback): mongo.GridFSBucketWriteStream;
         read(options: any, done?: DoneCallback): mongo.GridFSBucketReadStream; 
         unlink(id: mongo.ObjectID, done: DoneCallback): void;

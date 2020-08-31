@@ -6,10 +6,9 @@ import lusca from "lusca";
 import mongo from "connect-mongo";
 import flash from "express-flash";
 import path from "path";
-import mongoose from "mongoose";
+import { connectToMongoose } from "./util/mongoose";
 import passport from "passport";
-import bluebird from "bluebird";
-import { MONGODB_URI, SESSION_SECRET } from "./util/secrets";
+
 import multer, { memoryStorage } from "multer";
 
 const MongoStore = mongo(session);
@@ -22,18 +21,12 @@ import * as uploadController from "./controllers/upload";
 
 // API keys and Passport configuration
 import * as passportConfig from "./config/passport";
+import { SESSION_SECRET } from "./util/secrets";
 
 // Create Express server
 const app = express();
 
-// Connect to MongoDB
-const mongoUrl = MONGODB_URI;
-mongoose.Promise = bluebird;
-
-if (mongoUrl === undefined) {
-    console.log("MongoURL undefined!");
-    process.exit();
-}
+const mongoUrl = connectToMongoose();
 
 let sessionSecret = SESSION_SECRET;
 
@@ -41,13 +34,6 @@ if (sessionSecret === undefined) {
     console.log("WARNING: Session secret undefined! Proceeding with empty string. ");
     sessionSecret = "";
 }
-
-mongoose.connect(mongoUrl, { useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true }).then(
-    () => { /** ready to use. The `mongoose.connect()` promise resolves to undefined. */ },
-).catch(err => {
-    console.log(`MongoDB connection error. Please make sure MongoDB is running. ${err}`);
-    process.exit();
-});
 
 // Express configuration
 app.set("port", process.env.PORT || 3000);

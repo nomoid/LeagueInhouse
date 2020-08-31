@@ -100,7 +100,7 @@ export const postUpload = (req: Request, res: Response, next: NextFunction) => {
             }
             replay.saveReplay(matchData, (err, storageLocation) => {
                 if (err) { return next(err); }
-                replay.storageLocation = storageLocation as string;
+                replay.storageLocation = storageLocation as "mongodb" | "azure";
                 replay.save((err) => {
                     if (err) { return next(err); }
                     User.findById(user.id, (err, user: UserDocument) => {
