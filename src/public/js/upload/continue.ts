@@ -53,7 +53,7 @@ function getVersion(callBack: (data: string) => void) {
     });
 }
 
-function onLoad() {
+function onLoad(): void {
     // Get player data
     const playerDataDiv = $("#draft-player-data").get()[0] as HTMLDivElement;
     const playerData = JSON.parse(playerDataDiv.innerHTML);

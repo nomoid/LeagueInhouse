@@ -1,6 +1,5 @@
 import passport from "passport";
 import passportLocal from "passport-local";
-import _ from "lodash";
 
 import { User, UserDocument } from "../models/User";
 import { Request, Response, NextFunction } from "express";
@@ -8,7 +7,7 @@ import { ACCESS_TOKENS } from "../util/secrets";
 
 const LocalStrategy = passportLocal.Strategy;
 
-passport.serializeUser<any, any>((user, done) => {
+passport.serializeUser<UserDocument, unknown>((user, done) => {
     done(undefined, user.id);
 });
 

@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 import mongooseLong from "mongoose-long";
 import { createModel } from "mongoose-gridfs";
 import { Readable } from "stream";
-import { HookNextFunction } from "mongoose";
 import { STORAGE_LOCATION } from "../util/secrets";
 import { AZURE_STORAGE_CONNECTION_STRING } from "../util/secrets";
 import { BlobServiceClient } from "@azure/storage-blob";
@@ -11,8 +10,8 @@ mongooseLong(mongoose);
 
 const schemaTypes = mongoose.Schema.Types;
 
-type LoadReplayCallback = (error?: Error, data?: Buffer) => any;
-type SaveReplayCallback = (error?: Error, storageLocation?: "mongodb" | "azure") => any;
+type LoadReplayCallback = (error?: Error, data?: Buffer) => unknown;
+type SaveReplayCallback = (error?: Error, storageLocation?: "mongodb" | "azure") => unknown;
 
 export type ReplayDocument = mongoose.Document & {
     matchId: mongoose.Types.Long;
@@ -83,7 +82,7 @@ function saveReplay(replay: ReplayDocument, buffer: Buffer, next: SaveReplayCall
             filename: fileName,
             contentType: "application/octet-stream"
         };
-        Attachment.write(options, stream, (error, file) => {
+        Attachment.write(options, stream, (error) => {
             if (error) {
                 return next(error);
             }
