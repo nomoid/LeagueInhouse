@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { Replay, ReplayDocument } from "../models/Replay";
 import { HookNextFunction } from "mongoose";
 import { Metadata } from "../processing/data";
-import { extractPlayerBySummonerName } from "../processing/player";
+import { extractPlayerBySummonerName, extractTeamFromPlayer } from "../processing/player";
 
 
 export const getStats = (req: Request, res: Response) => {
@@ -25,6 +25,11 @@ interface PartialSummonerStats {
     kills: number;
     deaths: number;
     assists: number;
+    totalVisionScore: number;
+    pentaKills: number;
+    totalCsPerMinute: number;
+    totalDamageShare: number;
+    totalKillParticipation: number;
 }
 
 async function emptyPartialSummonerStats(): Promise<PartialSummonerStats> {
@@ -34,14 +39,25 @@ async function emptyPartialSummonerStats(): Promise<PartialSummonerStats> {
         losses: 0,
         kills: 0,
         deaths: 0,
-        assists: 0
+        assists: 0,
+        totalVisionScore: 0,
+        pentaKills: 0,
+        totalCsPerMinute: 0,
+        totalDamageShare: 0,
+        totalKillParticipation: 0
     };
 }
 
 interface SummonerStats extends PartialSummonerStats {
     games: number;
-    // float, undefined if 0 games played
-    winrate: number | undefined;
+    winrate: number;
+    averageKills: number;
+    averageDeaths: number;
+    averageAssists: number;
+    averageVisionScore: number;
+    averageCsPerMinute: number;
+    averageDamageShare: number;
+    averageKillParticipation: number;
     // float, undefined if 0 deaths
     kda: number | undefined;
 }
@@ -57,13 +73,23 @@ async function loadMetadataAsync(replay: ReplayDocument) {
     });
 }
 
-async function getSummonerStats(replays: ReplayDocument[], summoner: string) {
+// Returns undefined if no games played
+async function getSummonerStats(replays: ReplayDocument[], summoner: string): Promise<SummonerStats | undefined> {
     const full = await replays.reduce(async (accum, curr) => {
         const metadata = await loadMetadataAsync(curr);
         const playerData = extractPlayerBySummonerName(metadata, summoner);
         if (!playerData) {
             return accum;
         }
+        const teamData = extractTeamFromPlayer(metadata, playerData);
+        const teamTotalDamageToChampions = teamData.reduce((accum, curr) => {
+            return accum + curr.totalDamageToChampions;
+        }, 0);
+        const teamTotalKills = teamData.reduce((accum, curr) => {
+            return accum + curr.kills;
+        }, 0);
+        const gameLengthInMillis = metadata.gameDuration;
+        const gameLengthInMinutes = gameLengthInMillis / 60000.0;
         const old = await accum;
         const partial: PartialSummonerStats = {
             summoner: playerData.summonerName,
@@ -71,14 +97,18 @@ async function getSummonerStats(replays: ReplayDocument[], summoner: string) {
             losses: old.losses + (playerData.win ? 0 : 1),
             kills: old.kills + playerData.kills,
             deaths: old.deaths + playerData.deaths,
-            assists: old.assists + playerData.assists
+            assists: old.assists + playerData.assists,
+            totalVisionScore: old.totalVisionScore + playerData.visionScore,
+            pentaKills: old.pentaKills + playerData.pentaKills,
+            totalCsPerMinute: old.totalCsPerMinute + (playerData.cs / gameLengthInMinutes),
+            totalDamageShare: old.totalDamageShare + (playerData.totalDamageToChampions / teamTotalDamageToChampions),
+            totalKillParticipation: old.totalKillParticipation + ((playerData.kills + playerData.assists) / teamTotalKills)
         };
         return partial;
     }, emptyPartialSummonerStats());
     const games = full.wins + full.losses;
-    let winrate: number | undefined;
-    if (games !== 0) {
-        winrate = full.wins / games;
+    if (games === 0) {
+        return undefined;
     }
     let kda: number | undefined;
     if (full.deaths !== 0) {
@@ -86,8 +116,15 @@ async function getSummonerStats(replays: ReplayDocument[], summoner: string) {
     }
     const rest = {
         games: games,
-        winrate: winrate,
-        kda: kda
+        winrate: full.wins / games,
+        kda: kda,
+        averageKills: full.kills / games,
+        averageDeaths: full.deaths / games,
+        averageAssists: full.assists / games,
+        averageVisionScore: full.totalVisionScore / games,
+        averageCsPerMinute: full.totalCsPerMinute / games,
+        averageDamageShare: full.totalDamageShare / games,
+        averageKillParticipation: full.totalKillParticipation / games
     };
     const complete: SummonerStats = { ...full, ...rest };
     return complete;
@@ -111,18 +148,21 @@ export const getSummoner = (req: Request, res: Response, next: HookNextFunction)
             return;
         }
         getSummonerStats(replays, summoner).then((summonerStats) => {
-            if (summonerStats.games === 0) {
+            if (!summonerStats) {
                 res.render("stats/summoner/empty", {
                     title: "Summoner Not Found",
                     summoner: summoner
                 });
+                return;
             }
-            else {
-                res.render("stats/summoner", {
-                    title: `${summonerStats.summoner} - Summoner Stats`,
-                    stats: summonerStats
-                });
-            }
+            res.render("stats/summoner", {
+                title: `${summonerStats.summoner} - Summoner Stats`,
+                stats: summonerStats,
+                format: {
+                    p: (num: number) => `${(num * 100).toFixed(2)}%`,
+                    f: (num: number) => `${num.toFixed(2)}`
+                }
+            });
         });
     });
 };

@@ -19,6 +19,13 @@ interface Player {
     win: boolean;
     // false for red team
     blueTeam: boolean;
+    visionScore: number;
+    doubleKills: number;
+    tripleKills: number;
+    quadraKills: number;
+    pentaKills: number;
+    cs: number;
+    totalDamageToChampions: number;
 }
 
 function get(props: Properties, key: string): string {
@@ -43,7 +50,14 @@ function extractSinglePlayer(props: Properties) {
         deaths: parseInt(get(props, "NUM_DEATHS")),
         position: position,
         win: get(props, "WIN") === "Win",
-        blueTeam: get(props, "TEAM") === "100"
+        blueTeam: get(props, "TEAM") === "100",
+        visionScore: parseInt(get(props, "VISION_SCORE")),
+        doubleKills: parseInt(get(props, "DOUBLE_KILLS")),
+        tripleKills: parseInt(get(props, "TRIPLE_KILLS")),
+        quadraKills: parseInt(get(props, "QUADRA_KILLS")),
+        pentaKills: parseInt(get(props, "PENTA_KILLS")),
+        cs: parseInt(get(props, "MINIONS_KILLED")) + parseInt(get(props, "NEUTRAL_MINIONS_KILLED")),
+        totalDamageToChampions: parseInt(get(props, "TOTAL_DAMAGE_DEALT_TO_CHAMPIONS"))
     };
     return player;
 }
@@ -64,16 +78,26 @@ export function extractAllPlayers(metadata: Metadata) {
 }
 
 function canonicalSummonerName(summonerName: string) {
-    return summonerName.replace(" ", "").toLowerCase();
+    return summonerName.replace(/ /g, "").toLowerCase();
 }
 
-export function extractPlayerBySummonerName(metdata: Metadata, summonerName: string): Player | undefined {
-    const players = extractAllPlayers(metdata);
+export function extractPlayerBySummonerName(metadata: Metadata, summonerName: string): Player | undefined {
+    const players = extractAllPlayers(metadata);
     for (const team of [players.blue, players.red]) {
         for (const player of team) {
             if (canonicalSummonerName(player.summonerName) === canonicalSummonerName(summonerName)) {
                 return player;
             }
         }
+    }
+}
+
+export function extractTeamFromPlayer(metadata: Metadata, player: Player) {
+    const players = extractAllPlayers(metadata);
+    if (player.blueTeam) {
+        return players.blue;
+    }
+    else {
+        return players.red;
     }
 }

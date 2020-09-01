@@ -3,11 +3,17 @@ extends ../../layout
 block content
   h2 #{stats.summoner} - Summoner Stats
   hr
-  p Winrate: #{stats.winrate}
+  p Winrate: #{format.p(stats.winrate)}
   p Wins: #{stats.wins}
   p Losses: #{stats.losses}
   br
-  p KDA: #{stats.kda}
-  p Kills: #{stats.kills}
-  p Deaths: #{stats.deaths}
-  p Assists: #{stats.assists}
+  p KDA: #{format.f(stats.kda)}
+  p Kills/Game: #{format.f(stats.averageKills)}
+  p Deaths/Game: #{format.f(stats.averageDeaths)}
+  p Assists/Game: #{format.f(stats.averageAssists)}
+  p Kill Participation (average): #{format.p(stats.averageKillParticipation)}
+  br
+  p Pentakills: #{stats.pentaKills}
+  p Vision Score (average): #{format.f(stats.averageVisionScore)}
+  p CS/Min (average): #{format.f(stats.averageCsPerMinute)}
+  p Damage Share (average): #{format.p(stats.averageDamageShare)}
