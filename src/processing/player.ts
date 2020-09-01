@@ -63,11 +63,15 @@ export function extractAllPlayers(metadata: Metadata) {
     return res;
 }
 
+function canonicalSummonerName(summonerName: string) {
+    return summonerName.replace(" ", "").toLowerCase();
+}
+
 export function extractPlayerBySummonerName(metdata: Metadata, summonerName: string): Player | undefined {
     const players = extractAllPlayers(metdata);
     for (const team of [players.blue, players.red]) {
         for (const player of team) {
-            if (player.summonerName.toLowerCase() === summonerName.toLowerCase()) {
+            if (canonicalSummonerName(player.summonerName) === canonicalSummonerName(summonerName)) {
                 return player;
             }
         }

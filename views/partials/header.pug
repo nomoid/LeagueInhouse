@@ -11,6 +11,8 @@ nav.navbar.navbar-expand-lg.navbar-light.bg-light.fixed-top
       ul.nav.navbar-nav.mr-auto
         li.nav-item(class=(title === 'Home') ? 'active' : undefined)
           a.nav-link(href='/') Home
+        li.nav-item(class=(title === 'Stats') ? 'active' : undefined)
+          a.nav-link(href='/stats') Stats
         if user
           li.nav-item(class=(title === 'Upload Replay') ? 'active' : undefined)
             a.nav-link(href='/upload') Upload Replay

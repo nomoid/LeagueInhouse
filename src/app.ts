@@ -103,6 +103,8 @@ app.post("/upload", upload.single("replay"), passportConfig.isAuthenticated, upl
 app.get("/upload/continue", passportConfig.isAuthenticated, uploadController.getUploadContinue);
 app.post("/upload/continue", passportConfig.isAuthenticated, uploadController.postUploadContinue);
 app.get("/upload/success", passportConfig.isAuthenticated, uploadController.getUploadSuccess);
+app.get("/stats", statsController.getStats);
+app.post("/stats", statsController.postStats);
 app.get("/stats/:gameMode/summoner/:summonerName", statsController.getSummoner);
 
 export default app;

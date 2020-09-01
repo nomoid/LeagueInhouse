@@ -1,0 +1,24 @@
+mixin gameModeSelector()
+  label.col-sm-3.col-form-label.text-right.font-weight-bold(for='mode') Game Mode
+  .col-sm-7
+    script.
+      function checkOther(value) {
+        var element = document.getElementById("modeOther");
+        if (value === "other") {
+          element.style.display = "block";
+        }
+        else {
+          element.style.display = "none";
+        }
+      }
+    select.form-control#mode(name="mode" onchange='checkOther(this.value);', required)
+      option(hidden, disabled, selected, value) Select an option
+      option(value="standard") Standard
+      option(value="inthouse") Inthouse
+      option(value="offrole") Offrole
+      option(value="king") King
+      option(value="aram") Aram
+      option(value="summerlol") SummerLoL
+      option(value="testing") Testing
+      option(value="other") Other
+    input.form-control(type="text", name="modeOther", id="modeOther", style="display:none;")

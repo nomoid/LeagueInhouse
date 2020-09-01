@@ -4,6 +4,20 @@ import { HookNextFunction } from "mongoose";
 import { Metadata } from "../processing/data";
 import { extractPlayerBySummonerName } from "../processing/player";
 
+
+export const getStats = (req: Request, res: Response) => {
+    res.render("stats", {
+        title: "Inhouse Stats",
+    });
+};
+
+export const postStats = (req: Request, res: Response) => {
+    const gameMode = encodeURIComponent(req.body.mode);
+    const summonerName = encodeURIComponent(req.body.summonerName);
+    res.redirect(`/stats/${gameMode}/summoner/${summonerName}`);
+};
+
+
 interface PartialSummonerStats {
     summoner: string;
     wins: number;
@@ -89,15 +103,23 @@ export const getSummoner = (req: Request, res: Response, next: HookNextFunction)
         if (err) {
             return next(err);
         }
+        if (replays.length === 0) {
+            res.render("stats/empty", {
+                title: "Game Mode Not Found",
+                gameMode: gameMode
+            });
+            return;
+        }
         getSummonerStats(replays, summoner).then((summonerStats) => {
             if (summonerStats.games === 0) {
                 res.render("stats/summoner/empty", {
-                    title: "Summoner Not Found"
+                    title: "Summoner Not Found",
+                    summoner: summoner
                 });
             }
             else {
                 res.render("stats/summoner", {
-                    title: `${summoner} - Summoner Stats`,
+                    title: `${summonerStats.summoner} - Summoner Stats`,
                     stats: summonerStats
                 });
             }

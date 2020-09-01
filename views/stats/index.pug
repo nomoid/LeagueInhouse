@@ -1,0 +1,26 @@
+extends ../layout
+
+block content
+  h2 Inhouse Stats
+  hr
+  form.form-horizontal(method="POST")
+    input(type='hidden', name='_csrf', value=_csrf)
+    .form-group.row.justify-content-md-center
+      .offset-sm-3.col-sm-7
+        h4 Summoner Search
+    .form-group.row.justify-content-md-center
+      include ../util
+      +gameModeSelector()
+    .form-group.row.justify-content-md-center
+      label.col-sm-3.col-form-label.text-right.font-weight-bold(for='summonerName') Summoner Name
+      .col-sm-7
+        input.form-control(type='text', name='summonerName', id='summonerName', required)
+    .form-group.row.justify-content-md-center
+      .offset-sm-3.col-sm-7
+        button.col-sm-3.btn.btn-primary(type='submit')
+          i.fa.fa-search
+          | Search
+      
+
+      
+  
