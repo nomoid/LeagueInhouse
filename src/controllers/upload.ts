@@ -1,11 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import moment from "moment";
 import "moment-timezone";
-import { longFromBigInt, Replay } from "../models/Replay";
+import { longFromBigInt, Replay, stringifyMetadata } from "../models/Replay";
 import { User, UserDocument } from "../models/User";
 import { parse } from "../processing/parser";
 import { extractAllPlayers } from "../processing/player";
 import { check, validationResult } from "express-validator";
+import { Metadata } from "../processing/data";
 
 function today() {
     return moment().tz("America/New_York").format("YYYY-MM-DD");
@@ -48,15 +49,13 @@ export const getUploadContinue = (req: Request, res: Response, next: NextFunctio
                 return res.redirect("/upload");
             });
         }
-        replay.loadReplay((err, buffer) => {
+        replay.loadMetadata((err, metadata) => {
             if (err) {
                 return next(err);
             }
-            parse(buffer as Buffer).then((metadata) => {
-                res.render("upload/continue", {
-                    title: "Upload Replay",
-                    players: extractAllPlayers(metadata)
-                });
+            res.render("upload/continue", {
+                title: "Upload Replay",
+                players: extractAllPlayers(metadata as Metadata)
             });
         });
     });
@@ -70,6 +69,7 @@ export const getUploadSuccess = (req: Request, res: Response) => {
         title: "Upload Success"
     });
 };
+
 
 export const postUpload = (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
@@ -89,6 +89,7 @@ export const postUpload = (req: Request, res: Response, next: NextFunction) => {
             submitter: user.id,
             mode: mode,
             date: req.body.date,
+            metadata: stringifyMetadata(metadata),
             incomplete: true
         });
 

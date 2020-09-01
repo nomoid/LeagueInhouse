@@ -5,11 +5,14 @@ import { Readable } from "stream";
 import { STORAGE_LOCATION } from "../util/secrets";
 import { AZURE_STORAGE_CONNECTION_STRING } from "../util/secrets";
 import { BlobServiceClient } from "@azure/storage-blob";
+import { Metadata } from "../processing/data";
+import { parse } from "../processing/parser";
 
 mongooseLong(mongoose);
 
 const schemaTypes = mongoose.Schema.Types;
 
+type LoadMetadataCallback = (error?: Error, metadata?: Metadata) => unknown;
 type LoadReplayCallback = (error?: Error, data?: Buffer) => unknown;
 type SaveReplayCallback = (error?: Error, storageLocation?: "mongodb" | "azure") => unknown;
 type DeleteReplayCallback = (error?: Error) => unknown;
@@ -26,6 +29,9 @@ export type ReplayDocument = mongoose.Document & {
         blueDraft: number[];
         redDraft: number[];
     };
+    // JSON string of Metadata object
+    metadata?: string;
+    loadMetadata: (next: LoadMetadataCallback) => void;
     loadReplay: (next: LoadReplayCallback) => void;
     saveReplay: (data: Buffer, next: SaveReplayCallback) => void;
     deleteReplay: (next: DeleteReplayCallback) => void;
@@ -42,7 +48,8 @@ const replaySchema = new mongoose.Schema({
         blueFirstPick: Boolean,
         blueDraft: [Number],
         redDraft: [Number]
-    }
+    },
+    metadata: String
 }, { timestamps: true });
 
 export async function saveReplayAzure(buffer: Buffer, fileName: string, connectionString: string) {
@@ -176,6 +183,32 @@ export function deleteReplay(replay: ReplayDocument, next: DeleteReplayCallback)
     }
 }
 
+export function stringifyMetadata(metadata: Metadata) {
+    return JSON.stringify(metadata, (_, value) => {
+        typeof value === "bigint" ? value.toString() : value;
+    });
+}
+
+export function loadMetadata(replay: ReplayDocument, next: LoadMetadataCallback) {
+    if (replay.metadata) {
+        return next(undefined, JSON.parse(replay.metadata) as Metadata);
+    }
+    loadReplay(replay, (error, buffer) => {
+        if (error) {
+            return next(error);
+        }
+        parse(buffer as Buffer).then((metadata) => {
+            replay.metadata = stringifyMetadata(metadata);
+            replay.save((err) => {
+                if (err) {
+                    return next(err);
+                }
+                return next(undefined, metadata);
+            });
+        });
+    });
+}
+
 replaySchema.methods.saveReplay = function (this: ReplayDocument, data: Buffer, next: SaveReplayCallback) {
     saveReplay(this, data, next);
 };
@@ -186,6 +219,10 @@ replaySchema.methods.loadReplay = function (this: ReplayDocument, next: LoadRepl
 
 replaySchema.methods.deleteReplay = function (this: ReplayDocument, next: DeleteReplayCallback) {
     deleteReplay(this, next);
+};
+
+replaySchema.methods.loadMetadata = function (this: ReplayDocument, next: LoadMetadataCallback) {
+    loadMetadata(this, next);
 };
 
 export const Replay = mongoose.model<ReplayDocument>("Replay", replaySchema);

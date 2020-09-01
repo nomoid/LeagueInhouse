@@ -18,6 +18,7 @@ const upload = multer({ storage: memoryStorage() });
 import * as homeController from "./controllers/home";
 import * as userController from "./controllers/user";
 import * as uploadController from "./controllers/upload";
+import * as statsController from "./controllers/stats";
 
 // API keys and Passport configuration
 import * as passportConfig from "./config/passport";
@@ -102,5 +103,6 @@ app.post("/upload", upload.single("replay"), passportConfig.isAuthenticated, upl
 app.get("/upload/continue", passportConfig.isAuthenticated, uploadController.getUploadContinue);
 app.post("/upload/continue", passportConfig.isAuthenticated, uploadController.postUploadContinue);
 app.get("/upload/success", passportConfig.isAuthenticated, uploadController.getUploadSuccess);
+app.get("/stats/:gameMode/summoner/:summonerName", statsController.getSummoner);
 
 export default app;
