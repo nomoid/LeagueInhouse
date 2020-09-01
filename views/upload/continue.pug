@@ -60,17 +60,11 @@ block content
         li.form-control.border-0 3rd
         li.form-control.border-0 4th
       ul.col-sm-3(id="draft-blue-sortable")
-        +player("blue","1")
-        +player("blue","2")
-        +player("blue","3")
-        +player("blue","4")
-        +player("blue","5")
+        each val in ["1", "2", "3", "4", "5"]
+          +player("blue", val)
       ul.col-sm-3(id="draft-red-sortable")
-        +player("red","1")
-        +player("red","2")
-        +player("red","3")
-        +player("red","4")
-        +player("red","5")
+        each val in ["1", "2", "3", "4", "5"]
+          +player("red", val)
     .form-group.row.justify-content-md-center
       .row.offset-sm-3.col-sm-7
         button.col-sm-3.btn.btn-primary(type='submit', name='submit')

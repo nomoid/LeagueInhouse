@@ -47,34 +47,22 @@ function updateSortable(sortable: Sortable, side: "blue" | "red") {
     }
 }
 
-function getVersion(callBack: (data: string) => void) {
-    $.getJSON("https://ddragon.leagueoflegends.com/api/versions.json", function (data: string[]) {
-        callBack(data[0]);
-    });
-}
-
 function onLoad(): void {
     // Get player data
     const playerDataDiv = $("#draft-player-data").get()[0] as HTMLDivElement;
     const playerData = JSON.parse(playerDataDiv.innerHTML);
     console.log(playerData);
-    getVersion(function (version) {
-        for (const color of ["blue", "red"]) {
-            for (let i = 0; i < 5; i++) {
-                const li = $(`#draft-${color}${i + 1}-name`).get()[0] as HTMLLIElement;
-                const singlePlayerData = playerData[color][i];
-                const summonerName = $('<div>').text(singlePlayerData.summonerName).html();
-                li.innerHTML = summonerName;
-                const domContainer = document.querySelector(`#draft-${color}${i + 1}-champion`);
-                const e = React.createElement;
-                ReactDOM.render(e(ChampionIcon, {
-                    name: singlePlayerData.champion,
-                    version: version,
-                    width: 20
-                }), domContainer);
+    for (const color of ["blue", "red"]) {
+        populateList(5, i => {
+            const singlePlayerData = playerData[color][i];
+            return {
+                textDiv: `#draft-${color}${i + 1}-name`,
+                imgDiv: `#draft-${color}${i + 1}-champion`,
+                text: singlePlayerData.summonerName,
+                champion: singlePlayerData.champion
             }
-        }
-    });
+        });
+    }
     const blueSortable = $("#draft-blue-sortable").sortable({
         onEnd: function (this: Sortable, event) {
             updateSortable(this, "blue");
