@@ -46,8 +46,10 @@ block content
       .col-sm-7
         input.form-control(type='date', name='date', id='date', value=today, required)
     .form-group.row.justify-content-md-center
-      include ../util
-      +gameModeSelector()
+      label.col-sm-3.col-form-label.text-right.font-weight-bold(for='mode') Game Mode
+      .col-sm-7
+        include ../util
+        +gameModeSelector("uploadGameMode", false, true)
     .form-group.row.justify-content-md-center
       .offset-sm-3.col-sm-7
         script.

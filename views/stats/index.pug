@@ -9,8 +9,10 @@ block content
       .offset-sm-3.col-sm-7
         h4 Summoner Search
     .form-group.row.justify-content-md-center
-      include ../util
-      +gameModeSelector()
+      label.col-sm-3.col-form-label.text-right.font-weight-bold(for='mode') Game Mode
+      .col-sm-7
+        include ../util
+        +gameModeSelector("summonerStats", true, true)
     .form-group.row.justify-content-md-center
       label.col-sm-3.col-form-label.text-right.font-weight-bold(for='summonerName') Summoner Name
       .col-sm-7

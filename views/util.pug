@@ -1,9 +1,8 @@
-mixin gameModeSelector()
-  label.col-sm-3.col-form-label.text-right.font-weight-bold(for='mode') Game Mode
-  .col-sm-7
-    script.
-      function checkOther(value) {
-        var element = document.getElementById("modeOther");
+mixin gameModeSelector(idPrefix, defaultSelected, hasOther)
+  script.
+    function checkOther(value) {
+      if (#{hasOther}) {
+        var element = document.getElementById("#{idPrefix}" + "-modeOther");
         if (value === "other") {
           element.style.display = "block";
         }
@@ -11,14 +10,24 @@ mixin gameModeSelector()
           element.style.display = "none";
         }
       }
-    select.form-control#mode(name="mode" onchange='checkOther(this.value);', required)
+    }
+  select.form-control(id=(idPrefix+"-modeSelector"), name="mode", onchange='checkOther(this.value);', required)
+    - if (!defaultSelected)
       option(hidden, disabled, selected, value) Select an option
-      option(value="standard") Standard
-      option(value="inthouse") Inthouse
-      option(value="offrole") Offrole
-      option(value="king") King
-      option(value="aram") Aram
-      option(value="summerlol") SummerLoL
-      option(value="testing") Testing
+    option(value="standard") Standard
+    option(value="inthouse") Inthouse
+    option(value="offrole") Offrole
+    option(value="king") King
+    option(value="aram") Aram
+    option(value="summerlol") SummerLoL
+    option(value="testing") Testing
+    - if (hasOther)
       option(value="other") Other
-    input.form-control(type="text", name="modeOther", id="modeOther", style="display:none;")
+  - if (hasOther)
+    input.form-control(type="text", name="modeOther", id=(idPrefix + "-modeOther"), style="display:none;")
+  - if(defaultSelected)
+    script.
+      if ("#{defaultGameMode}" !== "") {
+        const modeSelector = $(`##{idPrefix}-modeSelector`).get()[0];
+        modeSelector.value = "#{defaultGameMode}";
+      }

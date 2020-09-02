@@ -1,11 +1,22 @@
-nav.navbar.navbar-expand-lg.navbar-light.bg-light.fixed-top
+mixin searchBar(idPrefix)
+  form.form-inline.my-2.my-lg-0(method="POST",action="/stats")
+    .input-group
+      include ../util
+      .input-group-prepend
+        +gameModeSelector(idPrefix, true, false)
+      input.form-control(type="search", name="summonerName", placeholder="Summoner Name")
+      .input-group-addon
+        button.btn.btn-outline-success.my-2.my-sm-0(type="submit") Search
+
+nav.navbar.navbar-expand-xl.navbar-light.bg-light.fixed-top
   .container
     a.navbar-brand(href='/')
       i.fa.fa-trophy
       | League Inhouse Tracker
+    .nav.navbar-nav.d-none.d-md-flex.d-xl-none
+      +searchBar("searchBarMD")
     button.navbar-toggler(type='button', data-toggle='collapse', data-target='.navbar-collapse')
       span.navbar-toggler-icon
-
     .collapse.navbar-collapse
       .dropdown-divider
       ul.nav.navbar-nav.mr-auto
@@ -16,6 +27,8 @@ nav.navbar.navbar-expand-lg.navbar-light.bg-light.fixed-top
         if user
           li.nav-item(class=(title === 'Upload Replay') ? 'active' : undefined)
             a.nav-link(href='/upload') Upload Replay
+      .nav.navbar-nav.d-none.d-xl-flex
+        +searchBar("searchBarXL")
       ul.nav.navbar-nav
         if !user
           li.nav-item(class=(title === 'Login') ? 'active' : undefined)

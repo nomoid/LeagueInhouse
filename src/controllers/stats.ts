@@ -4,10 +4,9 @@ import { HookNextFunction } from "mongoose";
 import { Metadata } from "../processing/data";
 import { extractPlayerBySummonerName, extractTeamFromPlayer } from "../processing/player";
 
-
 export const getStats = (req: Request, res: Response) => {
     res.render("stats", {
-        title: "Inhouse Stats",
+        title: "Inhouse Stats"
     });
 };
 
@@ -133,9 +132,6 @@ async function getSummonerStats(replays: ReplayDocument[], summoner: string): Pr
 export const getSummoner = (req: Request, res: Response, next: HookNextFunction) => {
     const summoner = req.params["summonerName"];
     const gameMode = req.params["gameMode"];
-    if (!req.user) {
-        return res.redirect("/");
-    }
     Replay.find({ mode: gameMode }, (err, replays) => {
         if (err) {
             return next(err);
@@ -151,13 +147,15 @@ export const getSummoner = (req: Request, res: Response, next: HookNextFunction)
             if (!summonerStats) {
                 res.render("stats/summoner/empty", {
                     title: "Summoner Not Found",
-                    summoner: summoner
+                    summoner: summoner,
+                    defaultGameMode: gameMode
                 });
                 return;
             }
             res.render("stats/summoner", {
                 title: `${summonerStats.summoner} - Summoner Stats`,
                 stats: summonerStats,
+                defaultGameMode: gameMode,
                 format: {
                     p: (num: number) => `${(num * 100).toFixed(2)}%`,
                     f: (num: number) => `${num.toFixed(2)}`

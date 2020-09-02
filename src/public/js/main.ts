@@ -1,6 +1,6 @@
 $(document).ready(function() {
   // Place JavaScript code here...
-  if (onLoad) {
+  if (typeof onLoad !== "undefined") {
     onLoad();
   }
 });
