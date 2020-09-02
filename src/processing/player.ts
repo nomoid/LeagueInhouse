@@ -9,6 +9,41 @@ const positionMap: { [key: string]: string } = {
     OTHER: "Other"
 };
 
+const rankInfo = {
+    unranked: {
+        text: "Unranked/Provisional",
+        icon: 29
+    },
+    bronze: {
+        text: "Bronze",
+        icon: 3806
+    },
+    silver: {
+        text: "Silver",
+        icon: 3807
+    },
+    gold: {
+        text: "Gold",
+        icon: 3808
+    },
+    platinum: {
+        text: "Platinum",
+        icon: 3809
+    },
+    diamond: {
+        text: "Diamond",
+        icon: 3810
+    },
+    master: {
+        text: "Master",
+        icon: 3811
+    },
+    challenger: {
+        text: "Challenger",
+        icon: 3812
+    }
+};
+
 interface Player {
     summonerName: string;
     champion: string;
@@ -99,5 +134,14 @@ export function extractTeamFromPlayer(metadata: Metadata, player: Player) {
     }
     else {
         return players.red;
+    }
+}
+
+export function getRankInfo(name: string) {
+    if (name in rankInfo) {
+        return rankInfo[name as keyof typeof rankInfo];
+    }
+    else {
+        return rankInfo.unranked;
     }
 }

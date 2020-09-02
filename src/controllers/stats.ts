@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { Replay, ReplayDocument } from "../models/Replay";
 import { HookNextFunction } from "mongoose";
 import { Metadata } from "../processing/data";
-import { extractPlayerBySummonerName, extractTeamFromPlayer } from "../processing/player";
+import { extractPlayerBySummonerName, extractTeamFromPlayer, getRankInfo } from "../processing/player";
 
 export const getStats = (req: Request, res: Response) => {
     res.render("stats", {
@@ -59,6 +59,8 @@ interface SummonerStats extends PartialSummonerStats {
     averageKillParticipation: number;
     // float, undefined if 0 deaths
     kda: number | undefined;
+    icon: number;
+    rankText: string;
 }
 
 async function loadMetadataAsync(replay: ReplayDocument) {
@@ -113,6 +115,8 @@ async function getSummonerStats(replays: ReplayDocument[], summoner: string): Pr
     if (full.deaths !== 0) {
         kda = (full.kills + full.assists) / (full.deaths);
     }
+    const rank = "unranked";
+    const rankInfo = getRankInfo(rank);
     const rest = {
         games: games,
         winrate: full.wins / games,
@@ -123,7 +127,9 @@ async function getSummonerStats(replays: ReplayDocument[], summoner: string): Pr
         averageVisionScore: full.totalVisionScore / games,
         averageCsPerMinute: full.totalCsPerMinute / games,
         averageDamageShare: full.totalDamageShare / games,
-        averageKillParticipation: full.totalKillParticipation / games
+        averageKillParticipation: full.totalKillParticipation / games,
+        icon: rankInfo.icon,
+        rankText: rankInfo.text
     };
     const complete: SummonerStats = { ...full, ...rest };
     return complete;

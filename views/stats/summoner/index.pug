@@ -14,16 +14,17 @@ block content
     }
     .card {
       border: 1px solid rgba(0, 0, 0, 0.2);
+      background: #c0e0ff;
     }
   .d-flex.flex-row.justify-content-center
     .card.flex-row.summoner-stats-tile
       .card-body
         .font-weight-bold.mb-1
           | #{stats.summoner}
+        div(id='summoner-icon-data', style='display:none;') #{stats.icon}
         div(id="summoner-icon").mb-1
-          img(src="http://ddragon.leagueoflegends.com/cdn/10.16.1/img/profileicon/29.png", width=120)
         div
-          | Unranked/Provisional
+          | #{stats.rankText}
     .flex-column.justify-content-center.mw-100
       .card.flex-row.flex-wrap.border-0
         .card.summoner-stats-tile
