@@ -22,7 +22,7 @@ import * as statsController from "./controllers/stats";
 
 // API keys and Passport configuration
 import * as passportConfig from "./config/passport";
-import { SESSION_SECRET } from "./util/secrets";
+import { SESSION_SECRET, ENVIRONMENT } from "./util/secrets";
 
 // Create Express server
 const app = express();
@@ -62,6 +62,7 @@ const defaultGameMode = "summerlol";
 app.use((req, res, next) => {
     res.locals.user = req.user;
     res.locals.defaultGameMode = defaultGameMode;
+    res.locals.prod = ENVIRONMENT === "production";
     next();
 });
 app.use((req, res, next) => {

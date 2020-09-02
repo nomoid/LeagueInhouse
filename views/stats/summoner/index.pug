@@ -3,17 +3,90 @@ extends ../../layout
 block content
   h2 #{stats.summoner} - Summoner Stats
   hr
-  p Winrate: #{format.p(stats.winrate)}
-  p Wins: #{stats.wins}
-  p Losses: #{stats.losses}
-  br
-  p KDA: #{format.f(stats.kda)}
-  p Kills/Game: #{format.f(stats.averageKills)}
-  p Deaths/Game: #{format.f(stats.averageDeaths)}
-  p Assists/Game: #{format.f(stats.averageAssists)}
-  p Kill Participation (average): #{format.p(stats.averageKillParticipation)}
-  br
-  p Pentakills: #{stats.pentaKills}
-  p Vision Score (average): #{format.f(stats.averageVisionScore)}
-  p CS/Min (average): #{format.f(stats.averageCsPerMinute)}
-  p Damage Share (average): #{format.p(stats.averageDamageShare)}
+  style.
+    .summoner-stats-tile {
+      min-width: 200px;
+      width: 200px;
+      max-width: 200px;
+    }
+    .summoner-stats-tile .card-body {
+      padding: 0.5rem;
+    }
+    .card {
+      border: 1px solid rgba(0, 0, 0, 0.2);
+    }
+  .d-flex.flex-row.justify-content-center
+    .card.flex-row.summoner-stats-tile
+      .card-body
+        .font-weight-bold.mb-1
+          | #{stats.summoner}
+        div(id="summoner-icon").mb-1
+          img(src="http://ddragon.leagueoflegends.com/cdn/10.16.1/img/profileicon/29.png", width=120)
+        div
+          | Unranked/Provisional
+    .flex-column.justify-content-center.mw-100
+      .card.flex-row.flex-wrap.border-0
+        .card.summoner-stats-tile
+          .card-body
+            | Winrate: #{format.p(stats.winrate)}
+            br
+            | (Top X%)
+        .card.summoner-stats-tile
+          .card-body
+            | Games: #{stats.games}
+            br
+            | (Top X%)
+        .card.summoner-stats-tile
+          .card-body
+            | Wins: #{stats.wins}
+            br
+            | (Top X%)
+        .card.summoner-stats-tile
+          .card-body
+            | Losses: #{stats.losses}
+            br
+            | (Top X%)
+      .card.flex-row.flex-wrap.border-0
+        .card.summoner-stats-tile
+          .card-body
+            | KDA: #{format.f(stats.kda)}
+            br
+            | (Top X%)
+        .card.summoner-stats-tile
+          .card-body
+            | Kills/Game: #{format.f(stats.averageKills)}
+            br
+            | (Top X%)
+        .card.summoner-stats-tile
+          .card-body
+            | Deaths/Game: #{format.f(stats.averageDeaths)}
+            br
+            | (Top X%)
+        .card.summoner-stats-tile
+          .card-body
+            | Assists/Game: #{format.f(stats.averageAssists)}
+            br
+            | (Top X%)
+      .card.flex-row.flex-wrap.border-0
+        .card.summoner-stats-tile
+          .card-body
+            | Kill Participation: #{format.p(stats.averageKillParticipation)}
+            br
+            | (Top X%)
+        .card.summoner-stats-tile
+          .card-body
+            | Vision Score: #{format.f(stats.averageVisionScore)}
+            br
+            | (Top X%)
+        .card.summoner-stats-tile
+          .card-body
+            | CS/Min: #{format.f(stats.averageCsPerMinute)}
+            br
+            | (Top X%)
+        .card.summoner-stats-tile
+          .card-body
+            | Damage Share: #{format.p(stats.averageDamageShare)}
+            br
+            | (Top X%)
+  script(src="/js/react/icon.js")
+  script(src="/js/stats/summoner/index.js")

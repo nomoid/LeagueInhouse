@@ -47,11 +47,10 @@ function updateSortable(sortable: Sortable, side: "blue" | "red") {
     }
 }
 
-function onLoad(): void {
+onLoad.push(() => {
     // Get player data
     const playerDataDiv = $("#draft-player-data").get()[0] as HTMLDivElement;
     const playerData = JSON.parse(playerDataDiv.innerHTML);
-    console.log(playerData);
     for (const color of ["blue", "red"]) {
         populateList(5, i => {
             const singlePlayerData = playerData[color][i];
@@ -89,4 +88,4 @@ function onLoad(): void {
     blueRadio.checked = true;
     // Ignore compiler
     eval("checkDraft(document.getElementById(\"draftSelection\").value)");
-}
+});

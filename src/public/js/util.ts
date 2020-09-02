@@ -21,7 +21,8 @@ function populateList(count: number, getInfo: (index: number) => PopulateInfo) {
             li.innerHTML = summonerName;
             const domContainer = document.querySelector(populateInfo.imgDiv);
             const e = React.createElement;
-            ReactDOM.render(e(ChampionIcon, {
+            ReactDOM.render(e(Icon, {
+                type: "champion",
                 name: populateInfo.champion,
                 version: version,
                 width: 20
@@ -29,3 +30,5 @@ function populateList(count: number, getInfo: (index: number) => PopulateInfo) {
         }
     });
 }
+
+const onLoad = [() => {}];
