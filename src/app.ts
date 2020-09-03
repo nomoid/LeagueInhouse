@@ -110,5 +110,6 @@ app.get("/upload/success", passportConfig.isAuthenticated, uploadController.getU
 app.get("/stats", statsController.getStats);
 app.post("/stats", statsController.postStats);
 app.get("/stats/:gameMode/summoner/:summonerName", statsController.getSummoner);
+app.get("/admin/rebuildcache/", passportConfig.isAdminAuthenticated, statsController.getRebuildCache);
 
 export default app;

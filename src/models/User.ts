@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     accessToken: { type: String, unique: true, required: true},
     summonerName: String,
-    uploadInProgress: { type: schemaTypes.Long, unique: true }
+    uploadInProgress: schemaTypes.Long
 }, { timestamps: true });
 
 /**

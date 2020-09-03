@@ -217,7 +217,7 @@ export const postUploadContinue = async (req: Request, res: Response, next: Next
                             return next(err);
                         }
                         const summoners = await allSummoners(replay);
-                        await statCacheUpdater(replay.mode, summoners);
+                        // await statCacheUpdater(replay.mode, summoners);
                         return res.redirect("/upload/success");
                     });
                 });

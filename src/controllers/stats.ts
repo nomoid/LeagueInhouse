@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { Replay } from "../models/Replay";
+import { Replay, allSummoners } from "../models/Replay";
 import { HookNextFunction } from "mongoose";
 import { getSummonerStats } from "../processing/stat";
-import { getSummonerRanks, formatRankObject } from "../models/StatCache";
+import { getSummonerRanks, formatRankObject, statCacheUpdater } from "../models/StatCache";
 
 export const getStats = (req: Request, res: Response) => {
     res.render("stats", {
@@ -53,6 +53,35 @@ export const getSummoner = (req: Request, res: Response, next: HookNextFunction)
                     }
                 });
             });
+        });
+    });
+};
+
+export const getRebuildCache = (req: Request, res: Response) => {
+    Replay.find(async (err, replays) => {
+        const summonersByMode = new Map<string, Array<Promise<Array<string>>>>();
+        for (const replay of replays) {
+            const mode = replay.mode;
+            const summoners = allSummoners(replay);
+            if (!summonersByMode.has(mode)) {
+                summonersByMode.set(mode, new Array<Promise<Array<string>>>());
+            }
+            const arr = summonersByMode.get(mode) as Array<Promise<Array<string>>>;
+            arr.push(summoners);
+        }
+        const outerPromises: Array<Promise<void>> = [];
+        for (const mode of summonersByMode.keys()) {
+            let summoners: string[] = [];
+            const promises = summonersByMode.get(mode) as Array<Promise<string[]>>;
+            for (const promise of promises) {
+                const res = await promise;
+                summoners = summoners.concat(res);
+            }
+            outerPromises.push(statCacheUpdater(mode, summoners));
+        }
+        await Promise.all(outerPromises);
+        res.render("admin/rebuildcache", {
+            title: "Rebuild Cache"
         });
     });
 };
