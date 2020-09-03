@@ -7,6 +7,7 @@ import { AZURE_STORAGE_CONNECTION_STRING } from "../util/secrets";
 import { BlobServiceClient } from "@azure/storage-blob";
 import { Metadata } from "../processing/data";
 import { parse } from "../processing/parser";
+import { extractAllPlayers, Player } from "../processing/player";
 
 mongooseLong(mongoose);
 
@@ -31,7 +32,7 @@ export type ReplayDocument = mongoose.Document & {
     };
     // JSON string of Metadata object
     metadata?: string;
-    loadMetadata: (next: LoadMetadataCallback) => void;
+    loadMetadata: (next: LoadMetadataCallback, skipSave?: boolean) => void;
     loadReplay: (next: LoadReplayCallback) => void;
     saveReplay: (data: Buffer, next: SaveReplayCallback) => void;
     deleteReplay: (next: DeleteReplayCallback) => void;
@@ -185,11 +186,11 @@ export function deleteReplay(replay: ReplayDocument, next: DeleteReplayCallback)
 
 export function stringifyMetadata(metadata: Metadata) {
     return JSON.stringify(metadata, (_, value) => {
-        typeof value === "bigint" ? value.toString() : value;
+        return typeof value === "bigint" ? value.toString() : value;
     });
 }
 
-export function loadMetadata(replay: ReplayDocument, next: LoadMetadataCallback) {
+export function loadMetadata(replay: ReplayDocument, next: LoadMetadataCallback, skipSave?: boolean) {
     if (replay.metadata) {
         return next(undefined, JSON.parse(replay.metadata) as Metadata);
     }
@@ -199,12 +200,17 @@ export function loadMetadata(replay: ReplayDocument, next: LoadMetadataCallback)
         }
         parse(buffer as Buffer).then((metadata) => {
             replay.metadata = stringifyMetadata(metadata);
-            replay.save((err) => {
-                if (err) {
-                    return next(err);
-                }
+            if (skipSave) {
                 return next(undefined, metadata);
-            });
+            }
+            else {
+                replay.save((err) => {
+                    if (err) {
+                        return next(err);
+                    }
+                    return next(undefined, metadata);
+                });
+            }
         });
     });
 }
@@ -221,11 +227,37 @@ replaySchema.methods.deleteReplay = function (this: ReplayDocument, next: Delete
     deleteReplay(this, next);
 };
 
-replaySchema.methods.loadMetadata = function (this: ReplayDocument, next: LoadMetadataCallback) {
-    loadMetadata(this, next);
+replaySchema.methods.loadMetadata = function (this: ReplayDocument, next: LoadMetadataCallback, skipSave?: boolean) {
+    loadMetadata(this, next, skipSave);
 };
 
 export const Replay = mongoose.model<ReplayDocument>("Replay", replaySchema);
+
+export async function playerFunction<T>(replay: ReplayDocument, playerCallback: (player: Player) => Promise<T>) {
+    const promises: Array<Promise<T>> = [];
+    await new Promise<void>((resolve, reject) => {
+        replay.loadMetadata((err, result) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            const metadata = extractAllPlayers(result as Metadata);
+            for (const players of [metadata.blue, metadata.red]) {
+                for (const player of players) {
+                    promises.push(playerCallback(player));
+                }
+            }
+            resolve();
+        }, true);
+    });
+    return Promise.all(promises);
+}
+
+export async function allSummoners(replay: ReplayDocument) {
+    return playerFunction<string>(replay, async (player) => {
+        return player.summonerName;
+    });
+}
 
 export function longFromBigInt(n: bigint) {
     return mongoose.Types.Long.fromString(n.toString());

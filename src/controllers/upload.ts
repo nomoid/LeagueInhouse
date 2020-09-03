@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import moment from "moment";
 import "moment-timezone";
-import { longFromBigInt, Replay, stringifyMetadata } from "../models/Replay";
+import { longFromBigInt, Replay, stringifyMetadata, allSummoners } from "../models/Replay";
 import { User, UserDocument } from "../models/User";
 import { parse } from "../processing/parser";
 import { extractAllPlayers } from "../processing/player";
 import { check, validationResult } from "express-validator";
 import { Metadata } from "../processing/data";
+import { statCacheUpdater } from "../models/StatCache";
 
 function today() {
     return moment().tz("America/New_York").format("YYYY-MM-DD");
@@ -71,7 +72,7 @@ export const getUploadSuccess = (req: Request, res: Response) => {
 };
 
 
-export const postUpload = (req: Request, res: Response, next: NextFunction) => {
+export const postUpload = async (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
         return res.redirect("/");
     }
@@ -80,6 +81,15 @@ export const postUpload = (req: Request, res: Response, next: NextFunction) => {
     if (mode === "other") {
         const modeOther = req.body.modeOther as string;
         mode = modeOther.toLowerCase();
+        await check("modeOther", "Game mode must be alphanumeric!").matches(
+            /^\w+$/i).run(req);
+
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            req.flash("errors", errors.array());
+            return res.redirect("/upload");
+        }
+
     }
     const matchData = req.file.buffer;
     parse(matchData).then(function (metadata) {
@@ -124,32 +134,6 @@ export const postUploadContinue = async (req: Request, res: Response, next: Next
     if (!req.user) {
         return res.redirect("/");
     }
-    for (const color of ["blue", "red"]) {
-        let field;
-        if (color === "blue") {
-            field = "draftResultBlue";
-        }
-        else {
-            field = "draftResultRed";
-        }
-        const teamSize = 5;
-        let chain = check(field, "Validation bug: Invalid draft ordering!").custom(
-            (value) => {
-                const arr = JSON.parse(value);
-                return Array.isArray(arr) && arr.length === teamSize;
-            }
-        );
-        for (let i = 0; i < teamSize; i++) {
-            chain = chain.contains(`${color}${i+1}`);
-        }
-        await chain.run(req);
-    }
-    const errors = validationResult(req);
-
-    if (!errors.isEmpty()) {
-        req.flash("errors", errors.array());
-        return res.redirect("/upload/continue");
-    }
     const user = req.user as UserDocument;
     if (user.uploadInProgress === undefined) {
         return res.redirect("/upload");
@@ -164,6 +148,32 @@ export const postUploadContinue = async (req: Request, res: Response, next: Next
         });
     }
     else {
+        for (const color of ["blue", "red"]) {
+            let field;
+            if (color === "blue") {
+                field = "draftResultBlue";
+            }
+            else {
+                field = "draftResultRed";
+            }
+            const teamSize = 5;
+            let chain = check(field, "Validation bug: Invalid draft ordering!").custom(
+                (value) => {
+                    const arr = JSON.parse(value);
+                    return Array.isArray(arr) && arr.length === teamSize;
+                }
+            );
+            for (let i = 0; i < teamSize; i++) {
+                chain = chain.contains(`${color}${i + 1}`);
+            }
+            await chain.run(req);
+        }
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            req.flash("errors", errors.array());
+            return res.redirect("/upload/continue");
+        }
         Replay.findOne({ matchId: matchId }, (err, replay) => {
             if (err) {
                 return next(err);
@@ -198,11 +208,18 @@ export const postUploadContinue = async (req: Request, res: Response, next: Next
                         redDraft: redDraft
                     };
                 }
-                return replay.save((err) => {
+                replay.save((err) => {
                     if (err) {
                         return next(err);
                     }
-                    return res.redirect("/upload/success");
+                    replay.loadMetadata(async (err) => {
+                        if (err) {
+                            return next(err);
+                        }
+                        const summoners = await allSummoners(replay);
+                        await statCacheUpdater(replay.mode, summoners);
+                        return res.redirect("/upload/success");
+                    });
                 });
             });
         });

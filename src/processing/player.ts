@@ -44,7 +44,7 @@ const rankInfo = {
     }
 };
 
-interface Player {
+export interface Player {
     summonerName: string;
     champion: string;
     kills: number;

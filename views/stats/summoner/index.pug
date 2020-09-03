@@ -31,63 +31,63 @@ block content
           .card-body
             | Winrate: #{format.p(stats.winrate)}
             br
-            | (Top X%)
+            | #{ranks.winrate}
         .card.summoner-stats-tile
           .card-body
             | Games: #{stats.games}
             br
-            | (Top X%)
+            | #{ranks.games}
         .card.summoner-stats-tile
           .card-body
             | Wins: #{stats.wins}
             br
-            | (Top X%)
+            | #{ranks.wins}
         .card.summoner-stats-tile
           .card-body
             | Losses: #{stats.losses}
             br
-            | (Top X%)
+            | #{ranks.losses}
       .card.flex-row.flex-wrap.border-0
         .card.summoner-stats-tile
           .card-body
             | KDA: #{format.f(stats.kda)}
             br
-            | (Top X%)
+            | #{ranks.kda}
         .card.summoner-stats-tile
           .card-body
             | Kills/Game: #{format.f(stats.averageKills)}
             br
-            | (Top X%)
+            | #{ranks.averageKills}
         .card.summoner-stats-tile
           .card-body
             | Deaths/Game: #{format.f(stats.averageDeaths)}
             br
-            | (Top X%)
+            | #{ranks.averageDeaths}
         .card.summoner-stats-tile
           .card-body
             | Assists/Game: #{format.f(stats.averageAssists)}
             br
-            | (Top X%)
+            | #{ranks.averageAssists}
       .card.flex-row.flex-wrap.border-0
         .card.summoner-stats-tile
           .card-body
             | Kill Participation: #{format.p(stats.averageKillParticipation)}
             br
-            | (Top X%)
+            | #{ranks.averageKillParticipation}
         .card.summoner-stats-tile
           .card-body
             | Vision Score: #{format.f(stats.averageVisionScore)}
             br
-            | (Top X%)
+            | #{ranks.averageVisionScore}
         .card.summoner-stats-tile
           .card-body
             | CS/Min: #{format.f(stats.averageCsPerMinute)}
             br
-            | (Top X%)
+            | #{ranks.averageCsPerMinute}
         .card.summoner-stats-tile
           .card-body
             | Damage Share: #{format.p(stats.averageDamageShare)}
             br
-            | (Top X%)
+            | #{ranks.averageDamageShare}
   script(src="/js/react/icon.js")
   script(src="/js/stats/summoner/index.js")
