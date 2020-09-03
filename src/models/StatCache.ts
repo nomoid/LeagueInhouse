@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { SummonerStats, getSummonerStats } from "../processing/stat";
+import { rankInfo, divisions } from "../processing/player";
 import { Replay } from "./Replay";
 
 const epsilon = 0.0000000001;
@@ -19,6 +20,12 @@ const cacheStats: (Array<keyof SummonerStats>) = [
     "wins",
     "losses",
     "pentaKills"
+];
+
+// stats that are bad to have a high number
+const inverseCacheStats: (Array<keyof SummonerStats>) = [
+    "averageDeaths",
+    "losses"
 ];
 
 interface RankResult {
@@ -187,12 +194,31 @@ export const getSummonerRanks = async (summonerName: string, mode: string) => {
     return map;
 };
 
+export const percentileRankData = (percentile: number) => {
+    const processTextIcon = (rank: [keyof typeof rankInfo, number]) => {
+        const [tier, division] = rank;
+        const divisionText = ["", " I", " II", " III", " IV"];
+        return {
+            text: `${rankInfo[tier].text}${divisionText[division]}`,
+            icon: rankInfo[tier].icon
+        };
+    };
+    for (const division of divisions) {
+        if (percentile >= division[1] - epsilon) {
+            return processTextIcon(division[0]);
+        }
+    }
+    return processTextIcon(["unranked", 0]);
+};
+
 export const formatRankObject = (ranks: { [key: string]: RankResult }) => {
     const output: {
         [key: string]: {
             percentile: number;
             tooltip: string;
             formatted: string;
+            formattedRight: string;
+            icon?: number;
         };
     } = {};
     for (const stat of cacheStats) {
@@ -200,7 +226,8 @@ export const formatRankObject = (ranks: { [key: string]: RankResult }) => {
             output[stat] = {
                 percentile: 0,
                 tooltip: "",
-                formatted: ""
+                formatted: "",
+                formattedRight: ""
             };
         }
         else {
@@ -220,10 +247,17 @@ export const formatRankObject = (ranks: { [key: string]: RankResult }) => {
             else {
                 headingText = "Lowest";
             }
+            let rankPercentile = percentile;
+            if (inverseCacheStats.includes(stat)) {
+                rankPercentile = 1 - percentile;
+            }
+            const data = percentileRankData(rankPercentile);
             output[stat] = {
                 percentile: percentile * 100,
                 tooltip: `${total - rank}/${total}`,
-                formatted: headingText
+                formatted: headingText,
+                formattedRight: `${data.text}`,
+                icon: data.icon
             };
         }
     }

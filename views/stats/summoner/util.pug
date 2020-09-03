@@ -1,4 +1,4 @@
-mixin statColumnStyle(size)
+mixin summonerStatsStyle(size)
   style.
     @media (max-width: 575.98px) {
       .stat-column {
@@ -36,4 +36,32 @@ mixin statColumnStyle(size)
         width: #{size * 4}px;
         max-width: #{size * 4}px;
       }
+    }
+
+    .summoner-stats-tile-profile {
+      min-width: 200px;
+      width: 200px;
+      max-width: 200px;
+    }
+    .summoner-stats-tile-profile .card-body {
+      padding: 0.5rem;
+    }
+    .summoner-stats-tile {
+      min-width: #{size}px;
+      width: #{size}px;
+      max-width: #{size}px;
+    }
+    @media (max-width: 575.98px) {
+      .summoner-stats-tile {
+        min-width: 0px;
+        width: 100%;
+        max-width: #{size}px;
+      }
+    }
+    .summoner-stats-tile .card-body {
+      padding: 0.5rem;
+    }
+    .card {
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      background: #c0e0ff;
     }

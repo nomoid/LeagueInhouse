@@ -9,40 +9,80 @@ const positionMap: { [key: string]: string } = {
     OTHER: "Other"
 };
 
-const rankInfo = {
+export const rankInfo = {
     unranked: {
         text: "Unranked/Provisional",
         icon: 29
     },
+    iron: {
+        text: "Iron",
+        // no iron icon
+        icon: 29
+    },
     bronze: {
         text: "Bronze",
-        icon: 3806
+        icon: 1395
     },
     silver: {
         text: "Silver",
-        icon: 3807
+        icon: 1398
     },
     gold: {
         text: "Gold",
-        icon: 3808
+        icon: 1401
     },
     platinum: {
         text: "Platinum",
-        icon: 3809
+        icon: 1404
     },
     diamond: {
         text: "Diamond",
-        icon: 3810
+        icon: 1407
     },
     master: {
         text: "Master",
-        icon: 3811
+        icon: 1410
+    },
+    grandmaster: {
+        text: "Grandmaster",
+        // no grandmaster icon
+        icon: 1413
     },
     challenger: {
         text: "Challenger",
-        icon: 3812
+        icon: 1416
     }
 };
+
+export const divisions: [[keyof typeof rankInfo, number], number][] = [
+    [["challenger", 0], 1],
+    [["grandmaster", 0], 0.9996],
+    [["master", 0], 0.99925],
+    [["diamond", 1], 0.9975],
+    [["diamond", 2], 0.995],
+    [["diamond", 3], 0.99],
+    [["diamond", 4], 0.975],
+    [["platinum", 1], 0.96],
+    [["platinum", 2], 0.945],
+    [["platinum", 3], 0.925],
+    [["platinum", 4], 0.87],
+    [["gold", 1], 0.84],
+    [["gold", 2], 0.79],
+    [["gold", 3], 0.72],
+    [["gold", 4], 0.60],
+    [["silver", 1], 0.54],
+    [["silver", 2], 0.45],
+    [["silver", 3], 0.37],
+    [["silver", 4], 0.26],
+    [["bronze", 1], 0.19],
+    [["bronze", 2], 0.13],
+    [["bronze", 3], 0.09],
+    [["bronze", 4], 0.05],
+    [["iron", 1], 0.03],
+    [["iron", 2], 0.02],
+    [["iron", 3], 0.01],
+    [["iron", 4], 0]
+];
 
 export interface Player {
     summonerName: string;
