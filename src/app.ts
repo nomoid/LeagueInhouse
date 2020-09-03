@@ -58,7 +58,7 @@ app.use(flash());
 app.use(lusca.xframe("SAMEORIGIN"));
 app.use(lusca.xssProtection(true));
 
-const defaultGameMode = "summerlol";
+const defaultGameMode = "standard";
 app.use((req, res, next) => {
     res.locals.user = req.user;
     res.locals.defaultGameMode = defaultGameMode;
