@@ -18,7 +18,7 @@ onLoad.push(() => {
                 const iconHTML = iconData.innerHTML;
                 const idPrefix = iconHTML.split("=")[0];
                 const icon = iconHTML.split("=")[1];
-                if (icon !== undefined) {
+                if (icon !== "undefined") {
                     const domContainer = document.querySelector(`#rank-icon-${idPrefix}`);
                     const e = React.createElement;
                     ReactDOM.render(e(Icon, {
