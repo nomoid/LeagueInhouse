@@ -1,23 +1,47 @@
 extends ../../layout
 
+mixin rankBar(data)
+  .progress.mt-1(style="height: 5px;", data-placement="bottom", data-toggle="tooltip", title=data.tooltip)
+    .progress-bar(role="progressbar",style="width: " + data.percentile + "%;",
+      aria-valuenow=data.percentile,aria-valuemin="0",aria-valuemax="100")
+  .small #{data.formatted}
+
 block content
   h2 #{stats.summoner} - Summoner Stats
   hr
-  style.
-    .summoner-stats-tile {
-      min-width: 200px;
-      width: 200px;
-      max-width: 200px;
-    }
-    .summoner-stats-tile .card-body {
-      padding: 0.5rem;
-    }
-    .card {
-      border: 1px solid rgba(0, 0, 0, 0.2);
-      background: #c0e0ff;
-    }
+  include ./util
+  - const size = 225
+    +statColumnStyle(size)
+    style.
+      .summoner-stats-tile-profile {
+        min-width: 200px;
+        width: 200px;
+        max-width: 200px;
+      }
+      .summoner-stats-tile-profile .card-body {
+        padding: 0.5rem;
+      }
+      .summoner-stats-tile {
+        min-width: #{size}px;
+        width: #{size}px;
+        max-width: #{size}px;
+      }
+      @media (max-width: 575.98px) {
+        .summoner-stats-tile {
+          min-width: 0px;
+          width: 100%;
+          max-width: #{size}px;
+        }
+      }
+      .summoner-stats-tile .card-body {
+        padding: 0.5rem;
+      }
+      .card {
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        background: #c0e0ff;
+      }
   .d-flex.flex-row.justify-content-center
-    .card.flex-row.summoner-stats-tile
+    .card.flex-row.summoner-stats-tile-profile
       .card-body
         .font-weight-bold.mb-1
           | #{stats.summoner}
@@ -25,69 +49,69 @@ block content
         div(id="summoner-icon").mb-1
         div
           | #{stats.rankText}
-    .flex-column.justify-content-center.mw-100
+    .flex-column.justify-content-center.stat-column
       .card.flex-row.flex-wrap.border-0
         .card.summoner-stats-tile
           .card-body
             | Winrate: #{format.p(stats.winrate)}
             br
-            | #{ranks.winrate}
+            +rankBar(ranks.winrate)
         .card.summoner-stats-tile
           .card-body
             | Games: #{stats.games}
             br
-            | #{ranks.games}
+            +rankBar(ranks.games)
         .card.summoner-stats-tile
           .card-body
             | Wins: #{stats.wins}
             br
-            | #{ranks.wins}
+            +rankBar(ranks.wins)
         .card.summoner-stats-tile
           .card-body
             | Losses: #{stats.losses}
             br
-            | #{ranks.losses}
+            +rankBar(ranks.losses)
       .card.flex-row.flex-wrap.border-0
         .card.summoner-stats-tile
           .card-body
             | KDA: #{format.f(stats.kda)}
             br
-            | #{ranks.kda}
+            +rankBar(ranks.kda)
         .card.summoner-stats-tile
           .card-body
             | Kills/Game: #{format.f(stats.averageKills)}
             br
-            | #{ranks.averageKills}
+            +rankBar(ranks.averageKills)
         .card.summoner-stats-tile
           .card-body
             | Deaths/Game: #{format.f(stats.averageDeaths)}
             br
-            | #{ranks.averageDeaths}
+            +rankBar(ranks.averageDeaths)
         .card.summoner-stats-tile
           .card-body
             | Assists/Game: #{format.f(stats.averageAssists)}
             br
-            | #{ranks.averageAssists}
+            +rankBar(ranks.averageAssists)
       .card.flex-row.flex-wrap.border-0
         .card.summoner-stats-tile
           .card-body
             | Kill Participation: #{format.p(stats.averageKillParticipation)}
             br
-            | #{ranks.averageKillParticipation}
+            +rankBar(ranks.averageKillParticipation)
         .card.summoner-stats-tile
           .card-body
             | Vision Score: #{format.f(stats.averageVisionScore)}
             br
-            | #{ranks.averageVisionScore}
+            +rankBar(ranks.averageVisionScore)
         .card.summoner-stats-tile
           .card-body
             | CS/Min: #{format.f(stats.averageCsPerMinute)}
             br
-            | #{ranks.averageCsPerMinute}
+            +rankBar(ranks.averageCsPerMinute)
         .card.summoner-stats-tile
           .card-body
             | Damage Share: #{format.p(stats.averageDamageShare)}
             br
-            | #{ranks.averageDamageShare}
+            +rankBar(ranks.averageDamageShare)
   script(src="/js/react/icon.js")
   script(src="/js/stats/summoner/index.js")

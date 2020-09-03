@@ -187,11 +187,21 @@ export const getSummonerRanks = async (summonerName: string, mode: string) => {
     return map;
 };
 
-export const formatRankObject = (ranks: { [key: string]: RankResult} ) => {
-    const output: { [key: string]: string } = {};
+export const formatRankObject = (ranks: { [key: string]: RankResult }) => {
+    const output: {
+        [key: string]: {
+            percentile: number;
+            tooltip: string;
+            formatted: string;
+        };
+    } = {};
     for (const stat of cacheStats) {
         if (ranks[stat] === undefined) {
-            output[stat] = "(No percentile info)";
+            output[stat] = {
+                percentile: 0,
+                tooltip: "",
+                formatted: ""
+            };
         }
         else {
             const percentile = ranks[stat].percentile;
@@ -210,7 +220,11 @@ export const formatRankObject = (ranks: { [key: string]: RankResult} ) => {
             else {
                 headingText = "Lowest";
             }
-            output[stat] = `(${headingText} (${total - rank}/${total}))`;
+            output[stat] = {
+                percentile: percentile * 100,
+                tooltip: `${total - rank}/${total}`,
+                formatted: headingText
+            };
         }
     }
     return output;

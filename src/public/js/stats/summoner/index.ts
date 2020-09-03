@@ -1,4 +1,6 @@
 onLoad.push(() => {
+    // Unsafe cast to add bootstrap tooltip function
+    const tooltip = ($("[data-toggle='tooltip']") as any).tooltip();
     getVersion(function (version) {
         const icon = $("#summoner-icon-data").get()[0].innerHTML;
         const domContainer = document.querySelector("#summoner-icon");

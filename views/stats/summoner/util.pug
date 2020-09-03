@@ -1,0 +1,39 @@
+mixin statColumnStyle(size)
+  style.
+    @media (max-width: 575.98px) {
+      .stat-column {
+        max-width: #{size}px;
+      }
+    }
+
+    @media (min-width: 576px) and (max-width: 767.98px) {
+      .stat-column {
+        min-width: #{size}px;
+        width: #{size}px;
+        max-width: #{size}px;
+      }
+    }
+
+    @media (min-width: 768px) and (max-width: 991.98px) {
+      .stat-column {
+        min-width: #{size * 2}px;
+        width: #{size * 2}px;
+        max-width: #{size * 2}px;
+      }
+    }
+
+    @media (min-width: 992px) and (max-width: 1199.98px) {
+      .stat-column {
+        min-width: #{size * 2}px;
+        width: #{size * 2}px;
+        max-width: #{size * 2}px;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .stat-column {
+        min-width: #{size * 4}px;
+        width: #{size * 4}px;
+        max-width: #{size * 4}px;
+      }
+    }
