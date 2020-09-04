@@ -93,12 +93,32 @@ statCacheSchema.methods.recalculateRanks = function (this: StatCacheDocument) {
     for (let i = 0; i < arr.length; i++) {
         let highest = i;
         const [name, value] = arr[i];
-        for (let j = i + 1; j < arr.length; j++) {
+        let lowest = true;
+        // Check tied lowest
+        for (let j = i - 1; j >= 0; j--) {
             const newValue = arr[j][1];
-            if (Math.abs(value - newValue) < epsilon) {
-                highest = j;
+            if (Math.abs(value - newValue) > epsilon) {
+                lowest = false;
+                break;
             }
         }
+
+        if (!lowest) {
+            // Check tied
+            for (let j = i + 1; j < arr.length; j++) {
+                const newValue = arr[j][1];
+                if (Math.abs(value - newValue) < epsilon) {
+                    highest = j;
+                }
+                else {
+                    break;
+                }
+            }
+        }
+        else {
+            highest = 0;
+        }
+
         this.ranks.set(name, {
             rank: highest,
             total: arr.length,
@@ -238,9 +258,6 @@ export const formatRankObject = (ranks: { [key: string]: RankResult }) => {
             if (percentile >= 1 - epsilon) {
                 headingText = "Highest";
             }
-            // else if (percentile >= 0.5 - epsilon) {
-            //     headingText = `Top ${((1 - percentile) * 100).toFixed(0)}%`;
-            // }
             else if (percentile > 0 + epsilon) {
                 const th = (num: number) => {
                     if (num === 11 || num === 12 || num === 13) {
