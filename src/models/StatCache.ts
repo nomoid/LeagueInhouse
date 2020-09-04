@@ -238,11 +238,26 @@ export const formatRankObject = (ranks: { [key: string]: RankResult }) => {
             if (percentile >= 1 - epsilon) {
                 headingText = "Highest";
             }
-            else if (percentile >= 0.5 - epsilon) {
-                headingText = `Top ${((1 - percentile) * 100).toFixed(0)}%`;
-            }
+            // else if (percentile >= 0.5 - epsilon) {
+            //     headingText = `Top ${((1 - percentile) * 100).toFixed(0)}%`;
+            // }
             else if (percentile > 0 + epsilon) {
-                headingText = `Bottom ${(percentile * 100).toFixed(0)}%`;
+                const th = (num: number) => {
+                    if (num === 11 || num === 12 || num === 13) {
+                        return "th";
+                    }
+                    else if (num % 10 === 1) {
+                        return "st";
+                    }
+                    else if (num % 10 === 2) {
+                        return "nd";
+                    }
+                    else {
+                        return "th";
+                    }
+                };
+                const num = Math.floor(percentile * 100);
+                headingText = `${num}${th(num)} percentile`;
             }
             else {
                 headingText = "Lowest";
