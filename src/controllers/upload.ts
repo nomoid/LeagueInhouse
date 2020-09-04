@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import moment from "moment";
 import "moment-timezone";
-import { longFromBigInt, Replay, stringifyMetadata, allSummoners } from "../models/Replay";
+import { longFromBigInt, Replay, stringifyMetadata, allSummoners, recentReplays } from "../models/Replay";
 import { User, UserDocument } from "../models/User";
 import { parse } from "../processing/parser";
 import { extractAllPlayers } from "../processing/player";
@@ -13,7 +13,7 @@ function today() {
     return moment().tz("America/New_York").format("YYYY-MM-DD");
 }
 
-export const getUpload = (req: Request, res: Response) => {
+export const getUpload = async (req: Request, res: Response) => {
     if (!req.user) {
         return res.redirect("/");
     }
@@ -21,9 +21,12 @@ export const getUpload = (req: Request, res: Response) => {
     if (user.uploadInProgress !== undefined) {
         return res.redirect("/upload/continue");
     }
+    const recentDocuments = await recentReplays(20);
+    const recents = recentDocuments.map((replay) => replay.matchId);
     res.render("upload/index", {
         title: "Upload Replay",
-        today: today()
+        today: today(),
+        recents: recents
     });
 };
 
@@ -127,6 +130,9 @@ export const postUpload = async (req: Request, res: Response, next: NextFunction
                 });
             });
         });
+    }).catch(() => {
+        req.flash("errors", { msg: "Failed to upload replay!" });
+        return res.redirect("/upload");
     });
 };
 

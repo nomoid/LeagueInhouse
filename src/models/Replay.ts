@@ -262,3 +262,16 @@ export async function allSummoners(replay: ReplayDocument) {
 export function longFromBigInt(n: bigint) {
     return mongoose.Types.Long.fromString(n.toString());
 }
+
+export function recentReplays(numReplays: number) {
+    return new Promise<ReplayDocument[]>((resolve, reject) => {
+        Replay.find().limit(numReplays).sort({ $natural: -1 }).exec((err, replays) => {
+            if (err) {
+                return reject(err);
+            }
+            else {
+                return resolve(replays);
+            }
+        });
+    });
+}

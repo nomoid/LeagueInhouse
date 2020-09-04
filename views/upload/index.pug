@@ -36,11 +36,14 @@ block content
         ul
           li Windows: The replay is located at "C:/Users/&lt;username&gt;/Documents/League of Legends/Replays"
           li Mac: The replay is located at "/Users/&lt;username&gt;/Documents/League of Legends/Replays"
-
+    .form-group.row.justify-content-md-center(id="upload-error", style="display:none;")
+      ul.alert.alert-danger.offset-sm-3.col-sm-7(id="upload-error-text") Upload replay error! 
     .form-group.row.justify-content-md-center
+      div(id='recent-replays', style='display:none;') #{JSON.stringify(recents)}
       label.col-sm-3.col-form-label.text-right.font-weight-bold(for='replay') Replay File (.rofl)
       .col-sm-7
-        input.form-control(type='file', name='replay', id='replay', accept=".rofl", required)
+        input.form-control(type='file', name='replay', id='replay', accept=".rofl",
+          onchange="checkRecentReplay(this);", required)
     .form-group.row.justify-content-md-center
       label.col-sm-3.col-form-label.text-right.font-weight-bold(for='date') Date
       .col-sm-7
@@ -60,3 +63,4 @@ block content
         button.col-sm-3.btn.btn-primary(type='submit')
           i.fa.fa-upload
           | Upload
+    script(src="/js/upload/index.js")
