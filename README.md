@@ -9,14 +9,18 @@ This project's structure is based on the [TypeScript-Node-Starter](https://githu
   - Specify the draft order of the game
 - User accounts
 - Persistent storage
+- Summoner stats
 
 ### Upcoming/Potential
+- Summoner list
 - Gameplay stats
-  - Summoner stats
+  - Summoner roles
+  - Stat leaderboards
   - Match history
   - Champion stats
   - Individual match stats
 - Inhouse ranking system
+- More to come!
 
 ## Software stack
 - Backend
